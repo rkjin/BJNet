@@ -22,7 +22,7 @@ import gc
 cudnn.benchmark = True
 
 parser = argparse.ArgumentParser(description='Cascade and Fused Cost Volume for Robust Stereo Matching(CFNet)')
-parser.add_argument('--model', default='cfnet', help='select a model structure', choices=__models__.keys())
+parser.add_argument('--model', default='bjnet_fused', help='select a model structure', choices=__models__.keys())
 parser.add_argument('--maxdisp', type=int, default=192, help='maximum disparity')
 
 parser.add_argument('--dataset', required=True, help='dataset name', choices=__datasets__.keys())
@@ -62,7 +62,7 @@ TrainImgLoader = DataLoader(train_dataset, args.batch_size, shuffle=True, num_wo
 TestImgLoader = DataLoader(test_dataset, args.test_batch_size, shuffle=False, num_workers=4, drop_last=False)
 
 # model, optimizer
-model = __models__[args.model](args.maxdisp)
+model = __models__[args.model](args.maxdisp, args.model)
 model = nn.DataParallel(model)
 model.cuda()
 optimizer = optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.999))
@@ -157,7 +157,7 @@ def train_sample(sample, compute_metrics=False):
 
     disp_ests = model(imgL, imgR)
     mask = (disp_gt < args.maxdisp) & (disp_gt > 0)
-    loss = model_loss(disp_ests, disp_gt, mask)
+    loss = model_loss(disp_ests, disp_gt, mask) ###############################
 
     scalar_outputs = {"loss": loss}
     image_outputs = {"disp_est": disp_ests, "disp_gt": disp_gt, "imgL": imgL, "imgR": imgR}

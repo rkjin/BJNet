@@ -269,10 +269,11 @@ class hourglass(nn.Module):
 
         return conv6
 
-class cfnet(nn.Module):
-    def __init__(self, maxdisp, use_concat_volume=False):
-        super(cfnet, self).__init__()
+class bjnet(nn.Module):
+    def __init__(self, maxdisp, net, use_concat_volume=False):
+        super(bjnet, self).__init__()
         self.maxdisp = maxdisp
+        self.net = net
         self.use_concat_volume = use_concat_volume
         self.v_scale_s1 = 1
         self.v_scale_s2 = 2
@@ -495,109 +496,122 @@ class cfnet(nn.Module):
         return cost_volume, disparity_samples
 
     def forward(self, left, right):
+ 
         features_left = self.feature_extraction(left)
         features_right = self.feature_extraction(right)
 
-        gwc_volume4 = build_gwc_volume(features_left["gw4"], features_right["gw4"], self.maxdisp // 8,
-                                       self.num_groups)
+        if self.net == 'fused': ############################################################################
 
-        gwc_volume5 = build_gwc_volume(features_left["gw5"], features_right["gw5"], self.maxdisp // 16,
-                                       self.num_groups)
+            gwc_volume2 = build_gwc_volume(features_left["gw2"], features_right["gw2"], self.maxdisp // 8,
+                                        self.num_groups)
+            gwc_volume3 = build_gwc_volume(features_left["gw3"], features_right["gw3"], self.maxdisp // 8,
+                                        self.num_groups)                                        
+            gwc_volume4 = build_gwc_volume(features_left["gw4"], features_right["gw4"], self.maxdisp // 8,
+                                        self.num_groups)
+            gwc_volume5 = build_gwc_volume(features_left["gw5"], features_right["gw5"], self.maxdisp // 16,
+                                        self.num_groups)
+            gwc_volume6 = build_gwc_volume(features_left["gw6"], features_right["gw6"], self.maxdisp // 32,
+                                        self.num_groups)
+            if self.use_concat_volume:
+                concat_volume2 = build_concat_volume(features_left["concat_feature2"], features_right["concat_feature2"],
+                                                    self.maxdisp // 8)
+                concat_volume3 = build_concat_volume(features_left["concat_feature3"], features_right["concat_feature3"],
+                                                    self.maxdisp // 8)
+                concat_volume4 = build_concat_volume(features_left["concat_feature4"], features_right["concat_feature4"],
+                                                    self.maxdisp // 8)
+                concat_volume5 = build_concat_volume(features_left["concat_feature5"], features_right["concat_feature5"],
+                                                    self.maxdisp // 16)
+                concat_volume6 = build_concat_volume(features_left["concat_feature6"], features_right["concat_feature6"],
+                                                    self.maxdisp // 32)
+                volume2 = torch.cat((gwc_volume2, concat_volume2), 1)
+                volume3 = torch.cat((gwc_volume3, concat_volume3), 1)
+                volume4 = torch.cat((gwc_volume4, concat_volume4), 1)
+                volume5 = torch.cat((gwc_volume5, concat_volume5), 1)
+                volume6 = torch.cat((gwc_volume6, concat_volume6), 1)
 
-        gwc_volume6 = build_gwc_volume(features_left["gw6"], features_right["gw6"], self.maxdisp // 32,
-                                       self.num_groups)
-        if self.use_concat_volume:
-            concat_volume4 = build_concat_volume(features_left["concat_feature4"], features_right["concat_feature4"],
-                                                 self.maxdisp // 8)
-            concat_volume5 = build_concat_volume(features_left["concat_feature5"], features_right["concat_feature5"],
-                                                 self.maxdisp // 16)
-            concat_volume6 = build_concat_volume(features_left["concat_feature6"], features_right["concat_feature6"],
-                                                 self.maxdisp // 32)
-            volume4 = torch.cat((gwc_volume4, concat_volume4), 1)
-            volume5 = torch.cat((gwc_volume5, concat_volume5), 1)
-            volume6 = torch.cat((gwc_volume6, concat_volume6), 1)
-
-        else:
-            volume4 = gwc_volume4
-
-        cost0_4 = self.dres0(volume4)
-        cost0_4 = self.dres1(cost0_4) + cost0_4
-        cost0_5 = self.dres0_5(volume5)
-        cost0_5 = self.dres1_5(cost0_5) + cost0_5
-        cost0_6 = self.dres0_6(volume6)
-        cost0_6 = self.dres1_6(cost0_6) + cost0_6
-        out1_4 = self.combine1(cost0_4, cost0_5, cost0_6)
-        out2_4 = self.dres3(out1_4)
+            else:
+                volume4 = gwc_volume4
 
 
-        cost2_s4 = self.classif2(out2_4)
-        cost2_s4 = torch.squeeze(cost2_s4, 1)
-        pred2_possibility_s4 = F.softmax(cost2_s4, dim=1)
-        
-        pred2_s4 = disparity_regression(pred2_possibility_s4, self.maxdisp // 8).unsqueeze(1)
-        pred2_s4_cur = pred2_s4.detach()
+
+            cost0_4 = self.dres0(volume4)
+            cost0_4 = self.dres1(cost0_4) + cost0_4
+            cost0_5 = self.dres0_5(volume5)
+            cost0_5 = self.dres1_5(cost0_5) + cost0_5
+            cost0_6 = self.dres0_6(volume6)
+            cost0_6 = self.dres1_6(cost0_6) + cost0_6
+            # out1_4 = self.combine1(cost0_4, cost0_5, cost0_6)
+            # out2_4 = self.dres3(out1_4)
+
+
+            cost2_s4 = self.classif2(out2_4)
+            cost2_s4 = torch.squeeze(cost2_s4, 1)
+            pred2_possibility_s4 = F.softmax(cost2_s4, dim=1)
+            
+            pred2_s4 = disparity_regression(pred2_possibility_s4, self.maxdisp // 8).unsqueeze(1)
+        #    pred2_s4_cur = pred2_s4.detach()
         # Fused cost volume
         ############################################################################################
         # Cascade Cost volume
-        pred2_v_s4 = disparity_variance(pred2_possibility_s4, self.maxdisp // 8, pred2_s4_cur)  # get the variance
-        pred2_v_s4 = pred2_v_s4.sqrt()
-        mindisparity_s3 = pred2_s4_cur - (self.gamma_s3 + 1) * pred2_v_s4 - self.beta_s3
-        maxdisparity_s3 = pred2_s4_cur + (self.gamma_s3 + 1) * pred2_v_s4 + self.beta_s3
-        maxdisparity_s3 = F.upsample(maxdisparity_s3 * 2, [left.size()[2] // 4, left.size()[3] // 4], mode='bilinear', align_corners=True)
-        #[1, 1, 64, 128])          ([1, 1, 32, 128])  ([1, 3, 256, 512])  ([1, 3, 256, 512])
-        mindisparity_s3 = F.upsample(mindisparity_s3 * 2, [left.size()[2] // 4, left.size()[3] // 4], mode='bilinear',
-                                    align_corners=True)
+        # pred2_v_s4 = disparity_variance(pred2_possibility_s4, self.maxdisp // 8, pred2_s4_cur)  # get the variance
+        # pred2_v_s4 = pred2_v_s4.sqrt()
+        # mindisparity_s3 = pred2_s4_cur - (self.gamma_s3 + 1) * pred2_v_s4 - self.beta_s3
+        # maxdisparity_s3 = pred2_s4_cur + (self.gamma_s3 + 1) * pred2_v_s4 + self.beta_s3
+        # maxdisparity_s3 = F.upsample(maxdisparity_s3 * 2, [left.size()[2] // 4, left.size()[3] // 4], mode='bilinear', align_corners=True)
+        # #[1, 1, 64, 128])          ([1, 1, 32, 128])  ([1, 3, 256, 512])  ([1, 3, 256, 512])
+        # mindisparity_s3 = F.upsample(mindisparity_s3 * 2, [left.size()[2] // 4, left.size()[3] // 4], mode='bilinear',
+        #                             align_corners=True)
        
-        mindisparity_s3_1, maxdisparity_s3_1 = self.generate_search_range(self.sample_count_s3 + 1, mindisparity_s3, maxdisparity_s3, scale = 2)
-        disparity_samples_s3 = self.generate_disparity_samples(mindisparity_s3_1, maxdisparity_s3_1, self.sample_count_s3).float()
-        confidence_v_concat_s3, _ = self.cost_volume_generator(features_left["concat_feature3"],
-                                                            features_right["concat_feature3"], disparity_samples_s3, 'concat')
-        confidence_v_gwc_s3, disparity_samples_s3 = self.cost_volume_generator(features_left["gw3"], features_right["gw3"],
-                                                                         disparity_samples_s3, 'gwc', self.num_groups)
-        confidence_v_s3 = torch.cat((confidence_v_gwc_s3, confidence_v_concat_s3, disparity_samples_s3), dim=1)
+        # mindisparity_s3_1, maxdisparity_s3_1 = self.generate_search_range(self.sample_count_s3 + 1, mindisparity_s3, maxdisparity_s3, scale = 2)
+        # disparity_samples_s3 = self.generate_disparity_samples(mindisparity_s3_1, maxdisparity_s3_1, self.sample_count_s3).float()
+        # confidence_v_concat_s3, _ = self.cost_volume_generator(features_left["concat_feature3"],
+        #                                                     features_right["concat_feature3"], disparity_samples_s3, 'concat')
+        # confidence_v_gwc_s3, disparity_samples_s3 = self.cost_volume_generator(features_left["gw3"], features_right["gw3"],
+        #                                                                  disparity_samples_s3, 'gwc', self.num_groups)
+        # confidence_v_s3 = torch.cat((confidence_v_gwc_s3, confidence_v_concat_s3, disparity_samples_s3), dim=1)
 
-        disparity_samples_s3 = torch.squeeze(disparity_samples_s3, dim=1)
+        # disparity_samples_s3 = torch.squeeze(disparity_samples_s3, dim=1)
 
-        cost0_s3 = self.confidence0_s3(confidence_v_s3)
-        cost0_s3 = self.confidence1_s3(cost0_s3) + cost0_s3
-        out1_s3 = self.confidence2_s3(cost0_s3)
-        out2_s3 = self.confidence3_s3(out1_s3)
-        cost1_s3 = self.confidence_classif1_s3(out2_s3).squeeze(1)
-        cost1_s3_possibility = F.softmax(cost1_s3, dim=1)
-        pred1_s3 = torch.sum(cost1_s3_possibility * disparity_samples_s3, dim=1, keepdim=True)
-        pred1_s3_cur = pred1_s3.detach()
+        # cost0_s3 = self.confidence0_s3(confidence_v_s3)
+        # cost0_s3 = self.confidence1_s3(cost0_s3) + cost0_s3
+        # out1_s3 = self.confidence2_s3(cost0_s3)
+        # out2_s3 = self.confidence3_s3(out1_s3)
+        # cost1_s3 = self.confidence_classif1_s3(out2_s3).squeeze(1)
+        # cost1_s3_possibility = F.softmax(cost1_s3, dim=1)
+        # pred1_s3 = torch.sum(cost1_s3_possibility * disparity_samples_s3, dim=1, keepdim=True)
+        # pred1_s3_cur = pred1_s3.detach()
 
-        pred1_v_s3 = disparity_variance_confidence(cost1_s3_possibility, disparity_samples_s3, pred1_s3_cur)
-        pred1_v_s3 = pred1_v_s3.sqrt()
-        mindisparity_s2 = pred1_s3_cur - (self.gamma_s2 + 1) * pred1_v_s3 - self.beta_s2
-        maxdisparity_s2 = pred1_s3_cur + (self.gamma_s2 + 1) * pred1_v_s3 + self.beta_s2
-        maxdisparity_s2 = F.upsample(maxdisparity_s2 * 2, [left.size()[2] // 2, left.size()[3] // 2], mode='bilinear',
-                                     align_corners=True)
-        mindisparity_s2 = F.upsample(mindisparity_s2 * 2, [left.size()[2] // 2, left.size()[3] // 2], mode='bilinear',
-                                     align_corners=True)
+        # pred1_v_s3 = disparity_variance_confidence(cost1_s3_possibility, disparity_samples_s3, pred1_s3_cur)
+        # pred1_v_s3 = pred1_v_s3.sqrt()
+        # mindisparity_s2 = pred1_s3_cur - (self.gamma_s2 + 1) * pred1_v_s3 - self.beta_s2
+        # maxdisparity_s2 = pred1_s3_cur + (self.gamma_s2 + 1) * pred1_v_s3 + self.beta_s2
+        # maxdisparity_s2 = F.upsample(maxdisparity_s2 * 2, [left.size()[2] // 2, left.size()[3] // 2], mode='bilinear',
+        #                              align_corners=True)
+        # mindisparity_s2 = F.upsample(mindisparity_s2 * 2, [left.size()[2] // 2, left.size()[3] // 2], mode='bilinear',
+        #                              align_corners=True)
 
-        mindisparity_s2_1, maxdisparity_s2_1 = self.generate_search_range(self.sample_count_s2 + 1, mindisparity_s2, maxdisparity_s2, scale = 1)
-        disparity_samples_s2 = self.generate_disparity_samples(mindisparity_s2_1, maxdisparity_s2_1, self.sample_count_s2).float()
-        confidence_v_concat_s2, _ = self.cost_volume_generator(features_left["concat_feature2"],
-                                                            features_right["concat_feature2"], disparity_samples_s2, 'concat')
-        confidence_v_gwc_s2, disparity_samples_s2 = self.cost_volume_generator(features_left["gw2"], features_right["gw2"],
-                                                                         disparity_samples_s2, 'gwc', self.num_groups // 2)
-        confidence_v_s2 = torch.cat((confidence_v_gwc_s2, confidence_v_concat_s2, disparity_samples_s2), dim=1)
+        # mindisparity_s2_1, maxdisparity_s2_1 = self.generate_search_range(self.sample_count_s2 + 1, mindisparity_s2, maxdisparity_s2, scale = 1)
+        # disparity_samples_s2 = self.generate_disparity_samples(mindisparity_s2_1, maxdisparity_s2_1, self.sample_count_s2).float()
+        # confidence_v_concat_s2, _ = self.cost_volume_generator(features_left["concat_feature2"],
+        #                                                     features_right["concat_feature2"], disparity_samples_s2, 'concat')
+        # confidence_v_gwc_s2, disparity_samples_s2 = self.cost_volume_generator(features_left["gw2"], features_right["gw2"],
+        #                                                                  disparity_samples_s2, 'gwc', self.num_groups // 2)
+        # confidence_v_s2 = torch.cat((confidence_v_gwc_s2, confidence_v_concat_s2, disparity_samples_s2), dim=1)
 
-        disparity_samples_s2 = torch.squeeze(disparity_samples_s2, dim=1)
+        # disparity_samples_s2 = torch.squeeze(disparity_samples_s2, dim=1)
 
-        cost0_s2 = self.confidence0_s2(confidence_v_s2)
-        cost0_s2 = self.confidence1_s2(cost0_s2) + cost0_s2
-        out1_s2 = self.confidence2_s2(cost0_s2)
-        out2_s2 = self.confidence3_s2(out1_s2)
-        cost1_s2 = self.confidence_classif1_s2(out2_s2).squeeze(1)
-        cost1_s2_possibility = F.softmax(cost1_s2, dim=1)
-        pred1_s2 = torch.sum(cost1_s2_possibility * disparity_samples_s2, dim=1, keepdim=True)
+        # cost0_s2 = self.confidence0_s2(confidence_v_s2)
+        # cost0_s2 = self.confidence1_s2(cost0_s2) + cost0_s2
+        # out1_s2 = self.confidence2_s2(cost0_s2)
+        # out2_s2 = self.confidence3_s2(out1_s2)
+        # cost1_s2 = self.confidence_classif1_s2(out2_s2).squeeze(1)
+        # cost1_s2_possibility = F.softmax(cost1_s2, dim=1)
+        # pred1_s2 = torch.sum(cost1_s2_possibility * disparity_samples_s2, dim=1, keepdim=True)
 
         # pred1_v_s2 = disparity_variance_confidence(cost1_s2_possibility, disparity_samples_s2, pred1_s2)
         # pred1_v_s2 = pred1_v_s2.sqrt()
 
-        if self.training:
+        if self.training: #True
             cost0_4 = self.classif0(cost0_4)
             cost1_4 = self.classif1(out1_4)
 
@@ -606,63 +620,63 @@ class cfnet(nn.Module):
             pred0_4 = F.softmax(cost0_4, dim=1)
             pred0_4 = disparity_regression(pred0_4, self.maxdisp)
 
-            cost1_4 = F.upsample(cost1_4, [self.maxdisp, left.size()[2], left.size()[3]], mode='trilinear', align_corners=True)
-            cost1_4 = torch.squeeze(cost1_4, 1)
-            pred1_4 = F.softmax(cost1_4, dim=1)
-            pred1_4 = disparity_regression(pred1_4, self.maxdisp)
+        #     cost1_4 = F.upsample(cost1_4, [self.maxdisp, left.size()[2], left.size()[3]], mode='trilinear', align_corners=True)
+        #     cost1_4 = torch.squeeze(cost1_4, 1)
+        #     pred1_4 = F.softmax(cost1_4, dim=1)
+        #     pred1_4 = disparity_regression(pred1_4, self.maxdisp)
 
-            pred2_s4 = F.upsample(pred2_s4 * 8, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
-            pred2_s4 = torch.squeeze(pred2_s4, 1)
+        #     pred2_s4 = F.upsample(pred2_s4 * 8, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
+        #     pred2_s4 = torch.squeeze(pred2_s4, 1)
 
-            cost0_s3 = self.confidence_classif0_s3(cost0_s3).squeeze(1)
-            cost0_s3 = F.softmax(cost0_s3, dim=1)
-            pred0_s3 = torch.sum(cost0_s3 * disparity_samples_s3, dim=1, keepdim=True)
-            pred0_s3 = F.upsample(pred0_s3 * 4, [left.size()[2], left.size()[3]], mode='bilinear',
-                                     align_corners=True)
-            pred0_s3 = torch.squeeze(pred0_s3, 1)
+        #     cost0_s3 = self.confidence_classif0_s3(cost0_s3).squeeze(1)
+        #     cost0_s3 = F.softmax(cost0_s3, dim=1)
+        #     pred0_s3 = torch.sum(cost0_s3 * disparity_samples_s3, dim=1, keepdim=True)
+        #     pred0_s3 = F.upsample(pred0_s3 * 4, [left.size()[2], left.size()[3]], mode='bilinear',
+        #                              align_corners=True)
+        #     pred0_s3 = torch.squeeze(pred0_s3, 1)
 
-            costmid_s3 = self.confidence_classifmid_s3(out1_s3).squeeze(1)
-            costmid_s3 = F.softmax(costmid_s3, dim=1)
-            predmid_s3 = torch.sum(costmid_s3 * disparity_samples_s3, dim=1, keepdim=True)
-            predmid_s3 = F.upsample(predmid_s3 * 4, [left.size()[2], left.size()[3]], mode='bilinear',
-                                     align_corners=True)
-            predmid_s3 = torch.squeeze(predmid_s3, 1)
+        #     costmid_s3 = self.confidence_classifmid_s3(out1_s3).squeeze(1)
+        #     costmid_s3 = F.softmax(costmid_s3, dim=1)
+        #     predmid_s3 = torch.sum(costmid_s3 * disparity_samples_s3, dim=1, keepdim=True)
+        #     predmid_s3 = F.upsample(predmid_s3 * 4, [left.size()[2], left.size()[3]], mode='bilinear',
+        #                              align_corners=True)
+        #     predmid_s3 = torch.squeeze(predmid_s3, 1)
 
-            pred1_s3_up = F.upsample(pred1_s3 * 4, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
-            pred1_s3_up = torch.squeeze(pred1_s3_up, 1)
+        #     pred1_s3_up = F.upsample(pred1_s3 * 4, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
+        #     pred1_s3_up = torch.squeeze(pred1_s3_up, 1)
 
-            cost0_s2 = self.confidence_classif0_s2(cost0_s2).squeeze(1)
-            cost0_s2 = F.softmax(cost0_s2, dim=1)
-            pred0_s2 = torch.sum(cost0_s2 * disparity_samples_s2, dim=1, keepdim=True)
-            pred0_s2 = F.upsample(pred0_s2 * 2, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
-            pred0_s2 = torch.squeeze(pred0_s2, 1)
+        #     cost0_s2 = self.confidence_classif0_s2(cost0_s2).squeeze(1)
+        #     cost0_s2 = F.softmax(cost0_s2, dim=1)
+        #     pred0_s2 = torch.sum(cost0_s2 * disparity_samples_s2, dim=1, keepdim=True)
+        #     pred0_s2 = F.upsample(pred0_s2 * 2, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
+        #     pred0_s2 = torch.squeeze(pred0_s2, 1)
 
-            costmid_s2 = self.confidence_classifmid_s2(out1_s2).squeeze(1)
-            costmid_s2 = F.softmax(costmid_s2, dim=1)
-            predmid_s2 = torch.sum(costmid_s2 * disparity_samples_s2, dim=1, keepdim=True)
-            predmid_s2 = F.upsample(predmid_s2 * 2, [left.size()[2], left.size()[3]], mode='bilinear',
-                                     align_corners=True)
-            predmid_s2 = torch.squeeze(predmid_s2, 1)
+        #     costmid_s2 = self.confidence_classifmid_s2(out1_s2).squeeze(1)
+        #     costmid_s2 = F.softmax(costmid_s2, dim=1)
+        #     predmid_s2 = torch.sum(costmid_s2 * disparity_samples_s2, dim=1, keepdim=True)
+        #     predmid_s2 = F.upsample(predmid_s2 * 2, [left.size()[2], left.size()[3]], mode='bilinear',
+        #                              align_corners=True)
+        #     predmid_s2 = torch.squeeze(predmid_s2, 1)
 
-            pred1_s2 = F.upsample(pred1_s2 * 2, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
-            pred1_s2 = torch.squeeze(pred1_s2, 1)
+        #     pred1_s2 = F.upsample(pred1_s2 * 2, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
+        #     pred1_s2 = torch.squeeze(pred1_s2, 1)
 
-            return [pred0_4, pred1_4, pred2_s4, pred0_s3, predmid_s3, pred1_s3_up, pred0_s2, predmid_s2, pred1_s2]
+            return [pred0_4]
 
-        else:
-            pred2_s4 = F.upsample(pred2_s4 * 8, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
-            pred2_s4 = torch.squeeze(pred2_s4, 1)
+        # else:
+        #     pred2_s4 = F.upsample(pred2_s4 * 8, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
+        #     pred2_s4 = torch.squeeze(pred2_s4, 1)
 
-            pred1_s3_up = F.upsample(pred1_s3 * 4, [left.size()[2], left.size()[3]], mode='bilinear',
-                                     align_corners=True)
-            pred1_s3_up = torch.squeeze(pred1_s3_up, 1)
+        #     pred1_s3_up = F.upsample(pred1_s3 * 4, [left.size()[2], left.size()[3]], mode='bilinear',
+        #                              align_corners=True)
+        #     pred1_s3_up = torch.squeeze(pred1_s3_up, 1)
 
-            pred1_s2 = F.upsample(pred1_s2 * 2, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
-            pred1_s2 = torch.squeeze(pred1_s2, 1)
+        #     pred1_s2 = F.upsample(pred1_s2 * 2, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
+        #     pred1_s2 = torch.squeeze(pred1_s2, 1)
 
 
             return [pred1_s2], [pred1_s3_up], [pred2_s4]
 
 
-def CFNet(d):
-    return cfnet(d, use_concat_volume=True)
+def BJNet(d):
+    return bjnet(d, net, use_concat_volume=True)
