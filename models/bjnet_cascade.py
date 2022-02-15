@@ -551,7 +551,7 @@ class bjnet(nn.Module):
             pred2_s4 = disparity_regression(pred2_possibility_s4, self.maxdisp // 8).unsqueeze(1)
         #    pred2_s4_cur = pred2_s4.detach()
         # Fused cost volume
-        ############################################################################################
+        # ###########################################################################################
         # Cascade Cost volume
         # pred2_v_s4 = disparity_variance(pred2_possibility_s4, self.maxdisp // 8, pred2_s4_cur)  # get the variance
         # pred2_v_s4 = pred2_v_s4.sqrt()
