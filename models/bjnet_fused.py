@@ -200,12 +200,30 @@ class bjnet(nn.Module):
             self.concat_channels = 0
             self.feature_extraction = feature_extraction(concat_feature=False)
 
-        self.dres0 = nn.Sequential(convbn_3d(self.num_groups + self.concat_channels*2, 32, 3, 1, 1),
+        self.dres0_2 = nn.Sequential(convbn_3d(self.num_groups + self.concat_channels*2, 32, 3, 1, 1),
                                    Mish(),
                                    convbn_3d(32, 32, 3, 1, 1),
                                    Mish())
 
-        self.dres1 = nn.Sequential(convbn_3d(32, 32, 3, 1, 1),
+        self.dres1_2 = nn.Sequential(convbn_3d(32, 32, 3, 1, 1),
+                                   Mish(),
+                                   convbn_3d(32, 32, 3, 1, 1))
+        self.dres0_3 = nn.Sequential(convbn_3d(self.num_groups + self.concat_channels*2, 32, 3, 1, 1),
+                                   Mish(),
+                                   convbn_3d(32, 32, 3, 1, 1),
+                                   Mish())
+
+        self.dres1_3 = nn.Sequential(convbn_3d(32, 32, 3, 1, 1),
+                                   Mish(),
+                                   convbn_3d(32, 32, 3, 1, 1))
+
+
+        self.dres0_4 = nn.Sequential(convbn_3d(self.num_groups + self.concat_channels*2, 32, 3, 1, 1),
+                                   Mish(),
+                                   convbn_3d(32, 32, 3, 1, 1),
+                                   Mish())
+
+        self.dres1_4 = nn.Sequential(convbn_3d(32, 32, 3, 1, 1),
                                    Mish(),
                                    convbn_3d(32, 32, 3, 1, 1))
 
@@ -394,7 +412,7 @@ class bjnet(nn.Module):
             gwc_volume2 = build_gwc_volume(features_left["gw2"], features_right["gw2"], self.maxdisp // 8,
                                         self.num_groups)
             gwc_volume3 = build_gwc_volume(features_left["gw3"], features_right["gw3"], self.maxdisp // 8,
-                                        self.num_groups)                                        
+                                        self.num_groups) 
             gwc_volume4 = build_gwc_volume(features_left["gw4"], features_right["gw4"], self.maxdisp // 8,
                                         self.num_groups)
             gwc_volume5 = build_gwc_volume(features_left["gw5"], features_right["gw5"], self.maxdisp // 16,
@@ -420,11 +438,12 @@ class bjnet(nn.Module):
 
             else:
                 volume4 = gwc_volume4
-
-
-
-            cost0_4 = self.dres0(volume4)
-            cost0_4 = self.dres1(cost0_4) + cost0_4
+            cost0_2 = self.dres0_2(volume2)
+            cost0_2 = self.dres1_2(cost0_2) + cost0_2
+            cost0_3 = self.dres0_3(volume3)
+            cost0_3 = self.dres1_3(cost0_3) + cost0_3
+            cost0_4 = self.dres0_4(volume4)
+            cost0_4 = self.dres1_4(cost0_4) + cost0_4
             cost0_5 = self.dres0_5(volume5)
             cost0_5 = self.dres1_5(cost0_5) + cost0_5
             cost0_6 = self.dres0_6(volume6)
