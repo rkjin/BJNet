@@ -409,10 +409,10 @@ class bjnet(nn.Module):
 
         if self.net == 'fused': ############################################################################
 
-            gwc_volume2 = build_gwc_volume(features_left["gw2"], features_right["gw2"], self.maxdisp // 8,
-                                        self.num_groups)
-            gwc_volume3 = build_gwc_volume(features_left["gw3"], features_right["gw3"], self.maxdisp // 8,
-                                        self.num_groups) 
+            # gwc_volume2 = build_gwc_volume(features_left["gw2"], features_right["gw2"], self.maxdisp // 8,
+            #                             self.num_groups)
+            # gwc_volume3 = build_gwc_volume(features_left["gw3"], features_right["gw3"], self.maxdisp // 8,
+            #                             self.num_groups) 
             gwc_volume4 = build_gwc_volume(features_left["gw4"], features_right["gw4"], self.maxdisp // 8,
                                         self.num_groups)
             gwc_volume5 = build_gwc_volume(features_left["gw5"], features_right["gw5"], self.maxdisp // 16,
@@ -420,36 +420,36 @@ class bjnet(nn.Module):
             gwc_volume6 = build_gwc_volume(features_left["gw6"], features_right["gw6"], self.maxdisp // 32,
                                         self.num_groups)
             if self.use_concat_volume:
-                concat_volume2 = build_concat_volume(features_left["concat_feature2"], features_right["concat_feature2"],
-                                                    self.maxdisp // 8)
-                concat_volume3 = build_concat_volume(features_left["concat_feature3"], features_right["concat_feature3"],
-                                                    self.maxdisp // 8)
+                # concat_volume2 = build_concat_volume(features_left["concat_feature2"], features_right["concat_feature2"],
+                #                                     self.maxdisp // 8)
+                # concat_volume3 = build_concat_volume(features_left["concat_feature3"], features_right["concat_feature3"],
+                #                                     self.maxdisp // 8)
                 concat_volume4 = build_concat_volume(features_left["concat_feature4"], features_right["concat_feature4"],
                                                     self.maxdisp // 8)
                 concat_volume5 = build_concat_volume(features_left["concat_feature5"], features_right["concat_feature5"],
                                                     self.maxdisp // 16)
                 concat_volume6 = build_concat_volume(features_left["concat_feature6"], features_right["concat_feature6"],
                                                     self.maxdisp // 32)
-                volume2 = torch.cat((gwc_volume2, concat_volume2), 1)
-                volume3 = torch.cat((gwc_volume3, concat_volume3), 1)
+                # volume2 = torch.cat((gwc_volume2, concat_volume2), 1)
+                # volume3 = torch.cat((gwc_volume3, concat_volume3), 1)
                 volume4 = torch.cat((gwc_volume4, concat_volume4), 1)
                 volume5 = torch.cat((gwc_volume5, concat_volume5), 1)
                 volume6 = torch.cat((gwc_volume6, concat_volume6), 1)
 
             else:
                 volume4 = gwc_volume4
-            cost0_2 = self.dres0_2(volume2)
-            cost0_2 = self.dres1_2(cost0_2) + cost0_2
-            cost0_3 = self.dres0_3(volume3)
-            cost0_3 = self.dres1_3(cost0_3) + cost0_3
+            # cost0_2 = self.dres0_2(volume2)
+            # cost0_2 = self.dres1_2(cost0_2) + cost0_2
+            # cost0_3 = self.dres0_3(volume3)
+            # cost0_3 = self.dres1_3(cost0_3) + cost0_3
             cost0_4 = self.dres0_4(volume4)
             cost0_4 = self.dres1_4(cost0_4) + cost0_4
             cost0_5 = self.dres0_5(volume5)
             cost0_5 = self.dres1_5(cost0_5) + cost0_5
             cost0_6 = self.dres0_6(volume6)
             cost0_6 = self.dres1_6(cost0_6) + cost0_6
-            # out1_4 = self.combine1(cost0_4, cost0_5, cost0_6)
-            # out2_4 = self.dres3(out1_4)
+            out1_4 = self.combine1(cost0_4, cost0_5, cost0_6)
+            out2_4 = self.dres3(out1_4)
             # ???????????????????????????????????????????????????????????????
 
             cost2_s4 = self.classif2(out2_4)
