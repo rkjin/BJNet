@@ -225,7 +225,7 @@ class hourglassup(nn.Module):
         # conv9 = FMish(self.conv9(conv8) + self.redir1(x))#[1, 32, 32, 32, 64])
 
 
-        return X  # conv9
+        return x  # conv9
 
 class hourglass(nn.Module):
     def __init__(self, in_channels):

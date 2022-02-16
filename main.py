@@ -185,7 +185,7 @@ def test_sample(sample, compute_metrics=True):
     imgR = imgR.cuda()
     disp_gt = disp_gt.cuda()
 
-    disp_ests, pred_s3, pred_s4 = model(imgL, imgR)
+    disp_ests = model(imgL, imgR)
     mask = (disp_gt < args.maxdisp) & (disp_gt > 0)
     loss = model_loss(disp_ests, disp_gt, mask)
 
