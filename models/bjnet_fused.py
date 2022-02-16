@@ -174,6 +174,101 @@ class feature_extraction(nn.Module):
                     "concat_feature2": concat_feature2, "concat_feature3": concat_feature3, "concat_feature4": concat_feature4,
                     "concat_feature5": concat_feature5, "concat_feature6": concat_feature6}
 
+class hourglassup(nn.Module):
+    def __init__(self, in_channels):
+        super(hourglassup, self).__init__()
+
+        self.conv1 = nn.Conv3d(in_channels, in_channels * 2, kernel_size=3, stride=2,
+                                   padding=1, bias=False)
+
+        self.conv2 = nn.Sequential(convbn_3d(in_channels * 2, in_channels * 2, 3, 1, 1),
+                                   Mish())
+
+        self.conv3 = nn.Conv3d(in_channels * 2, in_channels * 4, kernel_size=3, stride=2,
+                               padding=1, bias=False)
+
+        self.conv4 = nn.Sequential(convbn_3d(in_channels * 4, in_channels * 4, 3, 1, 1),
+                                   Mish())
+
+        self.conv8 = nn.Sequential(
+            nn.ConvTranspose3d(in_channels * 4, in_channels * 2, 3, padding=1, output_padding=1, stride=2, bias=False),
+            nn.BatchNorm3d(in_channels * 2))
+
+        self.conv9 = nn.Sequential(
+            nn.ConvTranspose3d(in_channels * 2, in_channels, 3, padding=1, output_padding=1, stride=2, bias=False),
+            nn.BatchNorm3d(in_channels))
+
+        self.combine1 = nn.Sequential(convbn_3d(in_channels * 4, in_channels * 2, 3, 1, 1),
+                                   Mish())
+        self.combine2 = nn.Sequential(convbn_3d(in_channels * 6, in_channels * 4, 3, 1, 1),
+                                      Mish())
+        self.combine3 = nn.Sequential(convbn_3d(in_channels * 6, in_channels * 4, 3, 1, 1),
+                                      Mish())
+
+        self.redir1 = convbn_3d(in_channels, in_channels, kernel_size=1, stride=1, pad=0)
+        self.redir2 = convbn_3d(in_channels * 2, in_channels * 2, kernel_size=1, stride=1, pad=0)
+        self.redir3 = convbn_3d(in_channels * 4, in_channels * 4, kernel_size=1, stride=1, pad=0)
+
+
+    def forward(self, x, feature4, feature5): #[1, 32, 32, 32, 64]) torch.Size([1, 64, 16, 16, 32]) torch.Size([1, 64, 8, 8, 16])
+        conv1 = self.conv1(x)          #1/8 [1, 64, 16, 16, 32])
+        conv1 = torch.cat((conv1, feature4), dim=1)   #1/8  [1, 128, 16, 16, 32])
+        conv1 = self.combine1(conv1)   #1/8 [1, 64, 16, 16, 32])
+        conv2 = self.conv2(conv1)      #1/8 [1, 64, 16, 16, 32])
+
+        conv3 = self.conv3(conv2)      #1/16 [1, 128, 8, 8, 16])
+        conv3 = torch.cat((conv3, feature5), dim=1)   #1/16 [1, 192, 8, 8, 16])
+        conv3 = self.combine2(conv3)   #1/16 [1, 128, 8, 8, 16])
+        conv4 = self.conv4(conv3)      #1/16 [1, 128, 8, 8, 16])
+
+        conv8 = FMish(self.conv8(conv4) + self.redir2(conv2)) #[1, 64, 16, 16, 32])
+        conv9 = FMish(self.conv9(conv8) + self.redir1(x))#[1, 32, 32, 32, 64])
+
+
+        return conv9
+
+class hourglass(nn.Module):
+    def __init__(self, in_channels):
+        super(hourglass, self).__init__()
+
+        self.conv1 = nn.Sequential(convbn_3d(in_channels, in_channels * 2, 3, 2, 1),
+                                   Mish())
+
+        self.conv2 = nn.Sequential(convbn_3d(in_channels * 2, in_channels * 2, 3, 1, 1),
+                                   Mish())
+
+        self.conv3 = nn.Sequential(convbn_3d(in_channels * 2, in_channels * 4, 3, 2, 1),
+                                   Mish())
+
+        self.conv4 = nn.Sequential(convbn_3d(in_channels * 4, in_channels * 4, 3, 1, 1),
+                                   Mish())
+
+        self.conv5 = nn.Sequential(
+            nn.ConvTranspose3d(in_channels * 4, in_channels * 2, 3, padding=1, output_padding=1, stride=2, bias=False),
+            nn.BatchNorm3d(in_channels * 2))
+
+        self.conv6 = nn.Sequential(
+            nn.ConvTranspose3d(in_channels * 2, in_channels, 3, padding=1, output_padding=1, stride=2, bias=False),
+            nn.BatchNorm3d(in_channels))
+
+        self.redir1 = convbn_3d(in_channels, in_channels, kernel_size=1, stride=1, pad=0)
+        self.redir2 = convbn_3d(in_channels * 2, in_channels * 2, kernel_size=1, stride=1, pad=0)
+
+    def forward(self, x): #[1, 32, 32, 32, 64])
+        conv1 = self.conv1(x) #[1, 64, 16, 16, 32])
+        conv2 = self.conv2(conv1)#[1, 64, 16, 16, 32])
+
+        conv3 = self.conv3(conv2)#[1, 128, 8, 8, 16])
+        conv4 = self.conv4(conv3)#[1, 128, 8, 8, 16])
+
+        # conv5 = F.relu(self.conv5(conv4) + self.redir2(conv2), inplace=True)
+        # conv6 = F.relu(self.conv6(conv5) + self.redir1(x), inplace=True)
+
+        conv5 = FMish(self.conv5(conv4) + self.redir2(conv2))#[1, 64, 16, 16, 32])
+        conv6 = FMish(self.conv6(conv5) + self.redir1(x))#[1, 32, 32, 32, 64])
+
+        return conv6
+
 
 class bjnet(nn.Module):
     def __init__(self, maxdisp, net, use_concat_volume=False):
@@ -278,6 +373,13 @@ class bjnet(nn.Module):
         # self.confidence3 = hourglass(32)
         #
         # self.confidence4 = hourglass(32)
+
+        self.combine1 = hourglassup(32)
+
+        # self.dres2 = hourglass(32)
+
+        self.dres3 = hourglass(32)
+
 
         self.confidence_classif0_s3 = nn.Sequential(convbn_3d(32, 32, 3, 1, 1),
                                                     Mish(),
