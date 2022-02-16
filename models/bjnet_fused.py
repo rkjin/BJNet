@@ -561,7 +561,7 @@ class bjnet(nn.Module):
             pred2_s4 = disparity_regression(pred2_possibility_s4, self.maxdisp // 8).unsqueeze(1)
 
 
-        if self.training: #True
+        if True : #self.training
             cost0_4 = self.classif0(cost0_4)
             cost1_4 = self.classif1(out1_4)
 
