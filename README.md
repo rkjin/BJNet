@@ -1,5 +1,5 @@
 # CFNet modified  
-## BJNet dreams Better Job Net
+## BJNet stands for Better Job Net
 1. disparity variance(The uncertainty) will be modified
 2. hourglassup and hourglass 제거 
 3. cascade cost volume 제거 -> fused cost volume (g2, g3 포함 수정, hourglass 제거)
