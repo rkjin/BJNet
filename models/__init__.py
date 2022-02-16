@@ -1,4 +1,4 @@
-from models.bjnet_cascade import CFNet
+from models.bjnet_fused  import BJNet
 from models.loss import model_loss
 
 __models__ = {
