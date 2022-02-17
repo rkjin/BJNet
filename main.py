@@ -142,7 +142,7 @@ def train():
         print('MAX epoch %d total test error = %.5f' % (bestepoch, error))
         gc.collect()
     print('MAX epoch %d total test error = %.5f' % (bestepoch, error))
-
+    torch.save(model,'/content/drive/MyDrive/logdir/CFNet.pth')
 
 # train one sample
 def train_sample(sample, compute_metrics=False):

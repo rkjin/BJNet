@@ -264,7 +264,7 @@ def train():
     print('Middlebury MAX epoch %d total midtest error = %.5f' % (bestepochmid, miderror))
     """
     print('KITTI MAX epoch %d total kittitest error = %.5f' % (bestepochkitti, kittierror))
-    torch.save(model,'/content/drive/MyDrive/data/CFNet.pth')
+    torch.save(model,'/content/drive/MyDrive/logdir/CFNet.pth')
 
 # train one sample
 def train_sample(sample, compute_metrics=False):
