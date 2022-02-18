@@ -140,7 +140,7 @@ class feature_extraction(nn.Module):
         l4 = self.layer4(l3)    #1/8
         l5 = self.layer5(l4)    #1/16
         l6 = self.layer6(l5)    #1/32
-        l6 = self.pyramid_pooling(l6)
+#        l6 = self.pyramid_pooling(l6)
 
         concat5 = torch.cat((l5, self.upconv6(l6)), dim=1)
         decov_5 = self.iconv5(concat5)
@@ -211,21 +211,21 @@ class hourglassup(nn.Module):
 
 
     def forward(self, x, feature4, feature5): #[1, 32, 32, 32, 64]) torch.Size([1, 64, 16, 16, 32]) torch.Size([1, 64, 8, 8, 16])
-        conv1 = self.conv1(x)          #1/8 [1, 64, 16, 16, 32])
-        conv1 = torch.cat((conv1, feature4), dim=1)   #1/8  [1, 128, 16, 16, 32])
-        conv1 = self.combine1(conv1)   #1/8 [1, 64, 16, 16, 32])
-        conv2 = self.conv2(conv1)      #1/8 [1, 64, 16, 16, 32])
+        # conv1 = self.conv1(x)          #1/8 [1, 64, 16, 16, 32])
+        # conv1 = torch.cat((conv1, feature4), dim=1)   #1/8  [1, 128, 16, 16, 32])
+        # conv1 = self.combine1(conv1)   #1/8 [1, 64, 16, 16, 32])
+        # conv2 = self.conv2(conv1)      #1/8 [1, 64, 16, 16, 32])
 
-        conv3 = self.conv3(conv2)      #1/16 [1, 128, 8, 8, 16])
-        conv3 = torch.cat((conv3, feature5), dim=1)   #1/16 [1, 192, 8, 8, 16])
-        conv3 = self.combine2(conv3)   #1/16 [1, 128, 8, 8, 16])
-        conv4 = self.conv4(conv3)      #1/16 [1, 128, 8, 8, 16])
+        # conv3 = self.conv3(conv2)      #1/16 [1, 128, 8, 8, 16])
+        # conv3 = torch.cat((conv3, feature5), dim=1)   #1/16 [1, 192, 8, 8, 16])
+        # conv3 = self.combine2(conv3)   #1/16 [1, 128, 8, 8, 16])
+        # conv4 = self.conv4(conv3)      #1/16 [1, 128, 8, 8, 16])
 
-        conv8 = FMish(self.conv8(conv4) + self.redir2(conv2)) #[1, 64, 16, 16, 32])
-        conv9 = FMish(self.conv9(conv8) + self.redir1(x))#[1, 32, 32, 32, 64])
+        # conv8 = FMish(self.conv8(conv4) + self.redir2(conv2)) #[1, 64, 16, 16, 32])
+        # conv9 = FMish(self.conv9(conv8) + self.redir1(x))#[1, 32, 32, 32, 64])
 
 
-        return conv9
+        return x  # conv9
 
 class hourglass(nn.Module):
     def __init__(self, in_channels):
@@ -255,19 +255,19 @@ class hourglass(nn.Module):
         self.redir2 = convbn_3d(in_channels * 2, in_channels * 2, kernel_size=1, stride=1, pad=0)
 
     def forward(self, x): #[1, 32, 32, 32, 64])
-        conv1 = self.conv1(x) #[1, 64, 16, 16, 32])
-        conv2 = self.conv2(conv1)#[1, 64, 16, 16, 32])
+        # conv1 = self.conv1(x) #[1, 64, 16, 16, 32])
+        # conv2 = self.conv2(conv1)#[1, 64, 16, 16, 32])
 
-        conv3 = self.conv3(conv2)#[1, 128, 8, 8, 16])
-        conv4 = self.conv4(conv3)#[1, 128, 8, 8, 16])
+        # conv3 = self.conv3(conv2)#[1, 128, 8, 8, 16])
+        # conv4 = self.conv4(conv3)#[1, 128, 8, 8, 16])
 
-        # conv5 = F.relu(self.conv5(conv4) + self.redir2(conv2), inplace=True)
-        # conv6 = F.relu(self.conv6(conv5) + self.redir1(x), inplace=True)
+        # # conv5 = F.relu(self.conv5(conv4) + self.redir2(conv2), inplace=True)
+        # # conv6 = F.relu(self.conv6(conv5) + self.redir1(x), inplace=True)
 
-        conv5 = FMish(self.conv5(conv4) + self.redir2(conv2))#[1, 64, 16, 16, 32])
-        conv6 = FMish(self.conv6(conv5) + self.redir1(x))#[1, 32, 32, 32, 64])
+        # conv5 = FMish(self.conv5(conv4) + self.redir2(conv2))#[1, 64, 16, 16, 32])
+        # conv6 = FMish(self.conv6(conv5) + self.redir1(x))#[1, 32, 32, 32, 64])
 
-        return conv6
+        return x #conv6
 
 
 class bjnet(nn.Module):
@@ -294,8 +294,8 @@ class bjnet(nn.Module):
         else:
             self.concat_channels = 0
             self.feature_extraction = feature_extraction(concat_feature=False)
-
-        self.dres0_2 = nn.Sequential(convbn_3d(self.num_groups + self.concat_channels*2, 32, 3, 1, 1),
+#       dres0_2, dres0_3 추가
+        self.dres0_2 = nn.Sequential(convbn_3d(self.num_groups + self.concat_channels*2, 8, 3, 1, 1),
                                    Mish(),
                                    convbn_3d(32, 32, 3, 1, 1),
                                    Mish())
@@ -303,7 +303,7 @@ class bjnet(nn.Module):
         self.dres1_2 = nn.Sequential(convbn_3d(32, 32, 3, 1, 1),
                                    Mish(),
                                    convbn_3d(32, 32, 3, 1, 1))
-        self.dres0_3 = nn.Sequential(convbn_3d(self.num_groups + self.concat_channels*2, 32, 3, 1, 1),
+        self.dres0_3 = nn.Sequential(convbn_3d(self.num_groups + self.concat_channels*2, 16, 3, 1, 1),
                                    Mish(),
                                    convbn_3d(32, 32, 3, 1, 1),
                                    Mish())
@@ -511,10 +511,10 @@ class bjnet(nn.Module):
 
         if self.net == 'fused': ############################################################################
 
-            # gwc_volume2 = build_gwc_volume(features_left["gw2"], features_right["gw2"], self.maxdisp // 8,
-            #                             self.num_groups)
-            # gwc_volume3 = build_gwc_volume(features_left["gw3"], features_right["gw3"], self.maxdisp // 8,
-            #                             self.num_groups) 
+            gwc_volume2 = build_gwc_volume(features_left["gw2"], features_right["gw2"], self.maxdisp // 2,
+                                        self.num_groups) # 추가
+            gwc_volume3 = build_gwc_volume(features_left["gw3"], features_right["gw3"], self.maxdisp // 4,
+                                        self.num_groups) # 추가
             gwc_volume4 = build_gwc_volume(features_left["gw4"], features_right["gw4"], self.maxdisp // 8,
                                         self.num_groups)
             gwc_volume5 = build_gwc_volume(features_left["gw5"], features_right["gw5"], self.maxdisp // 16,
@@ -522,28 +522,29 @@ class bjnet(nn.Module):
             gwc_volume6 = build_gwc_volume(features_left["gw6"], features_right["gw6"], self.maxdisp // 32,
                                         self.num_groups)
             if self.use_concat_volume:
-                # concat_volume2 = build_concat_volume(features_left["concat_feature2"], features_right["concat_feature2"],
-                #                                     self.maxdisp // 8)
-                # concat_volume3 = build_concat_volume(features_left["concat_feature3"], features_right["concat_feature3"],
-                #                                     self.maxdisp // 8)
+                concat_volume2 = build_concat_volume(features_left["concat_feature2"], features_right["concat_feature2"],
+                                                    self.maxdisp // 2) #추가
+                concat_volume3 = build_concat_volume(features_left["concat_feature3"], features_right["concat_feature3"],
+                                                    self.maxdisp // 4) #추가
                 concat_volume4 = build_concat_volume(features_left["concat_feature4"], features_right["concat_feature4"],
                                                     self.maxdisp // 8)
                 concat_volume5 = build_concat_volume(features_left["concat_feature5"], features_right["concat_feature5"],
                                                     self.maxdisp // 16)
                 concat_volume6 = build_concat_volume(features_left["concat_feature6"], features_right["concat_feature6"],
                                                     self.maxdisp // 32)
-                # volume2 = torch.cat((gwc_volume2, concat_volume2), 1)
-                # volume3 = torch.cat((gwc_volume3, concat_volume3), 1)
+                volume2 = torch.cat((gwc_volume2, concat_volume2), 1) #추가
+                volume3 = torch.cat((gwc_volume3, concat_volume3), 1) #추가
                 volume4 = torch.cat((gwc_volume4, concat_volume4), 1)
                 volume5 = torch.cat((gwc_volume5, concat_volume5), 1)
                 volume6 = torch.cat((gwc_volume6, concat_volume6), 1)
 
             else:
                 volume4 = gwc_volume4
-            # cost0_2 = self.dres0_2(volume2)
-            # cost0_2 = self.dres1_2(cost0_2) + cost0_2
-            # cost0_3 = self.dres0_3(volume3)
-            # cost0_3 = self.dres1_3(cost0_3) + cost0_3
+            #????????????????????????????????????????????????????????????????    
+            cost0_2 = self.dres0_2(volume2) #추가
+            cost0_2 = self.dres1_2(cost0_2) + cost0_2 #추가
+            cost0_3 = self.dres0_3(volume3) #추가
+            cost0_3 = self.dres1_3(cost0_3) + cost0_3 #추가
             cost0_4 = self.dres0_4(volume4)
             cost0_4 = self.dres1_4(cost0_4) + cost0_4
             cost0_5 = self.dres0_5(volume5)
