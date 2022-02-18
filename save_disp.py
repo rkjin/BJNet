@@ -40,7 +40,7 @@ test_dataset = StereoDataset(args.datapath, args.testlist, False)
 TestImgLoader = DataLoader(test_dataset, 1, shuffle=False, num_workers=4, drop_last=False)
 
 # model, optimizer
-model = __models__[args.model](args.maxdisp)
+model = __models__[args.model](args.maxdisp, args.model)
 model = nn.DataParallel(model)
 model.cuda()
 
@@ -59,13 +59,13 @@ def test():
         right_pad_np = tensor2numpy(sample["right_pad"])
         left_filenames = sample["left_filename"]
         print('Iter {}/{}, time = {:3f}'.format(batch_idx, len(TestImgLoader),
-                                                time.time() - start_time))
-
+                                                time.time() - start_time)
+                                                
         for disp_est, top_pad, right_pad, fn in zip(disp_est_np, top_pad_np, right_pad_np, left_filenames):
             assert len(disp_est.shape) == 2
             disp_est = np.array(disp_est[top_pad:, :-right_pad], dtype=np.float32)
             #fn = os.path.join("predictions", fn.split('/')[-1])
-            fn = os.path.join("/content/CFNet/prediction/", fn.split('/')[-1])
+            fn = os.path.join("/content/BJNet/prediction/", fn.split('/')[-1])
             print("saving to", fn, disp_est.shape)
             disp_est_uint = np.round(disp_est * 256).astype(np.uint16)
             skimage.io.imsave(fn, disp_est_uint)
@@ -75,7 +75,7 @@ def test():
 @make_nograd_func
 def test_sample(sample):
     model.eval()
-    disp_ests, pred1_s3_up, pred2_s4 = model(sample['left'].cuda(), sample['right'].cuda())
+    disp_ests = model(sample['left'].cuda(), sample['right'].cuda())
     return disp_ests[-1]
 
 
