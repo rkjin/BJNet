@@ -191,7 +191,8 @@ class hourglassup(nn.Module):
                                    Mish())
 
         self.conv8 = nn.Sequential(
-            nn.ConvTranspose3d(in_channels * 4, in_channels * 2, 3, padding=1, output_padding=1, stride=2, bias=False),
+       #     nn.ConvTranspose3d(in_channels * 4, in_channels * 2, 3, padding=1, output_padding=1, stride=2, bias=False),
+            nn.ConvTranspose3d(in_channels * 2, in_channels * 2, 3, padding=1, output_padding=1, stride=2, bias=False),            
             nn.BatchNorm3d(in_channels * 2))
 
         self.conv9 = nn.Sequential(
@@ -206,7 +207,8 @@ class hourglassup(nn.Module):
                                       Mish())
 
         self.redir1 = convbn_3d(in_channels, in_channels, kernel_size=1, stride=1, pad=0)
-        self.redir2 = convbn_3d(in_channels * 2, in_channels * 2, kernel_size=1, stride=1, pad=0)
+#        self.redir2 = convbn_3d(in_channels * 2, in_channels * 2, kernel_size=1, stride=1, pad=0)
+        self.redir2 = convbn_3d(in_channels * 1, in_channels * 2, kernel_size=1, stride=1, pad=0)        
         self.redir3 = convbn_3d(in_channels * 4, in_channels * 4, kernel_size=1, stride=1, pad=0)
 
 
