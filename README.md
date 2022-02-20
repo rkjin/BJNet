@@ -1,9 +1,15 @@
 # CFNet modified  
 ## BJNet stands for Better Job Net
-1. disparity variance(The uncertainty) will be modified
-2. hourglassup and hourglass 제거 
-3. cascade cost volume 제거 -> fused cost volume (g2, g3 포함 수정, hourglass 제거)
-4. fused coat volume & hourglass 제거
+
+BJNet_fused_1st
+  1. fused cost volume & cascade coat volume & hourglass 제거
+  2. fused volume 중 gw4 만 사용
+  
+BJNet_fused_2nd
+  1. fused cost volume & cascade coat volume & hourglass 제거
+  2. fused volume 중 gw3 만 사용
+
+
 
 ```
 # Acknowledgements
