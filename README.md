@@ -17,7 +17,7 @@ Convert movie file<br>
   - $source ./scripts/movie.sh
 
 Convert disparit map to color map 
-  - look camera/convert_3D.py
+  - look camera/disparity_to_3D.py
 
 ```
 # Acknowledgements
