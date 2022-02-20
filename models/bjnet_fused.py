@@ -27,7 +27,7 @@ class feature_extraction(nn.Module):
         self.layer4 = self._make_layer(BasicBlock, 192, 1, 2, 1, 1)
         self.layer5 = self._make_layer(BasicBlock, 256, 1, 2, 1, 1)
         self.layer6 = self._make_layer(BasicBlock, 512, 1, 2, 1, 1)
-        self.pyramid_pooling = pyramidPooling(512, None, fusion_mode='sum', model_name='icnet')
+        # self.pyramid_pooling = pyramidPooling(512, None, fusion_mode='sum', model_name='icnet')
         self.upconv6 = nn.Sequential(nn.Upsample(scale_factor=2),
                                      convbn(512, 256, 3, 1, 1, 1),
                                      Mish())
@@ -43,11 +43,11 @@ class feature_extraction(nn.Module):
                                      Mish())
         self.iconv3 = nn.Sequential(convbn(256, 128, 3, 1, 1, 1),
                                     Mish())
-        self.upconv3 = nn.Sequential(nn.Upsample(scale_factor=2),
-                                     convbn(128, 64, 3, 1, 1, 1),
-                                     Mish())
-        self.iconv2 = nn.Sequential(convbn(128, 64, 3, 1, 1, 1),
-                                    Mish())
+        # self.upconv3 = nn.Sequential(nn.Upsample(scale_factor=2),
+        #                              convbn(128, 64, 3, 1, 1, 1),
+        #                              Mish())
+        # self.iconv2 = nn.Sequential(convbn(128, 64, 3, 1, 1, 1),
+        #                             Mish())
         # self.upconv2 = nn.Sequential(nn.Upsample(scale_factor=2),
         #                              convbn(64, 32, 3, 1, 1, 1),
         #                              nn.ReLU(inplace=True))
@@ -57,30 +57,30 @@ class feature_extraction(nn.Module):
         #                          nn.Conv2d(40, 40, kernel_size=1, padding=0, stride=1,
         #                                    bias=False))
 
-        self.gw2 = nn.Sequential(convbn(64, 80, 3, 1, 1, 1),
-                                          Mish(),
-                                          nn.Conv2d(80, 80, kernel_size=1, padding=0, stride=1,
-                                                    bias=False))
+        # self.gw2 = nn.Sequential(convbn(64, 80, 3, 1, 1, 1),
+        #                                   Mish(),
+        #                                   nn.Conv2d(80, 80, kernel_size=1, padding=0, stride=1,
+        #                                             bias=False))
 
         self.gw3 = nn.Sequential(convbn(128, 160, 3, 1, 1, 1),
                                  Mish(),
                                  nn.Conv2d(160, 160, kernel_size=1, padding=0, stride=1,
                                            bias=False))
 
-        self.gw4 = nn.Sequential(convbn(192, 160, 3, 1, 1, 1),
-                                 Mish(),
-                                 nn.Conv2d(160, 160, kernel_size=1, padding=0, stride=1,
-                                           bias=False))
+        # self.gw4 = nn.Sequential(convbn(192, 160, 3, 1, 1, 1),
+        #                          Mish(),
+        #                          nn.Conv2d(160, 160, kernel_size=1, padding=0, stride=1,
+        #                                    bias=False))
 
-        self.gw5 = nn.Sequential(convbn(256, 320, 3, 1, 1, 1),
-                                 Mish(),
-                                 nn.Conv2d(320, 320, kernel_size=1, padding=0, stride=1,
-                                           bias=False))
+        # self.gw5 = nn.Sequential(convbn(256, 320, 3, 1, 1, 1),
+        #                          Mish(),
+        #                          nn.Conv2d(320, 320, kernel_size=1, padding=0, stride=1,
+        #                                    bias=False))
 
-        self.gw6 = nn.Sequential(convbn(512, 320, 3, 1, 1, 1),
-                                 Mish(),
-                                 nn.Conv2d(320, 320, kernel_size=1, padding=0, stride=1,
-                                           bias=False))
+        # self.gw6 = nn.Sequential(convbn(512, 320, 3, 1, 1, 1),
+        #                          Mish(),
+        #                          nn.Conv2d(320, 320, kernel_size=1, padding=0, stride=1,
+        #                                    bias=False))
 
         if self.concat_feature:
             # self.concat1 = nn.Sequential(convbn(32, 16, 3, 1, 1, 1),
@@ -88,29 +88,29 @@ class feature_extraction(nn.Module):
             #                              nn.Conv2d(16, concat_feature_channel // 4, kernel_size=1, padding=0, stride=1,
             #                                        bias=False))
 
-            self.concat2 = nn.Sequential(convbn(64, 32, 3, 1, 1, 1),
-                                          Mish(),
-                                          nn.Conv2d(32, concat_feature_channel // 2, kernel_size=1, padding=0, stride=1,
-                                                    bias=False))
+            # self.concat2 = nn.Sequential(convbn(64, 32, 3, 1, 1, 1),
+            #                               Mish(),
+            #                               nn.Conv2d(32, concat_feature_channel // 2, kernel_size=1, padding=0, stride=1,
+            #                                         bias=False))
             self.concat3 = nn.Sequential(convbn(128, 128, 3, 1, 1, 1),
                                           Mish(),
                                           nn.Conv2d(128, concat_feature_channel, kernel_size=1, padding=0, stride=1,
                                                     bias=False))
 
-            self.concat4 = nn.Sequential(convbn(192, 128, 3, 1, 1, 1),
-                                          Mish(),
-                                          nn.Conv2d(128, concat_feature_channel, kernel_size=1, padding=0, stride=1,
-                                                    bias=False))
+            # self.concat4 = nn.Sequential(convbn(192, 128, 3, 1, 1, 1),
+            #                               Mish(),
+            #                               nn.Conv2d(128, concat_feature_channel, kernel_size=1, padding=0, stride=1,
+            #                                         bias=False))
 
-            self.concat5 = nn.Sequential(convbn(256, 128, 3, 1, 1, 1),
-                                         Mish(),
-                                         nn.Conv2d(128, concat_feature_channel, kernel_size=1, padding=0, stride=1,
-                                                   bias=False))
+            # self.concat5 = nn.Sequential(convbn(256, 128, 3, 1, 1, 1),
+            #                              Mish(),
+            #                              nn.Conv2d(128, concat_feature_channel, kernel_size=1, padding=0, stride=1,
+            #                                        bias=False))
 
-            self.concat6 = nn.Sequential(convbn(512, 128, 3, 1, 1, 1),
-                                         Mish(),
-                                         nn.Conv2d(128, concat_feature_channel, kernel_size=1, padding=0, stride=1,
-                                                   bias=False))
+            # self.concat6 = nn.Sequential(convbn(512, 128, 3, 1, 1, 1),
+            #                              Mish(),
+            #                              nn.Conv2d(128, concat_feature_channel, kernel_size=1, padding=0, stride=1,
+            #                                        bias=False))
 
 
 
@@ -140,7 +140,7 @@ class feature_extraction(nn.Module):
         l4 = self.layer4(l3)    #1/8
         l5 = self.layer5(l4)    #1/16
         l6 = self.layer6(l5)    #1/32
-        l6 = self.pyramid_pooling(l6)
+#        l6 = self.pyramid_pooling(l6)
 
         concat5 = torch.cat((l5, self.upconv6(l6)), dim=1)
         decov_5 = self.iconv5(concat5)
@@ -149,30 +149,29 @@ class feature_extraction(nn.Module):
         decov_4 = self.iconv4(concat4)
         concat3 = torch.cat((l3, self.upconv4(decov_4)), dim=1)
         decov_3 = self.iconv3(concat3)
-        concat2 = torch.cat((l2, self.upconv3(decov_3)), dim=1)
-        decov_2 = self.iconv2(concat2)
+        # concat2 = torch.cat((l2, self.upconv3(decov_3)), dim=1)
+        # decov_2 = self.iconv2(concat2)
         # decov_1 = self.upconv2(decov_2)
 
 
         # gw1 = self.gw1(decov_1)
-        gw2 = self.gw2(decov_2)
+        #gw2 = self.gw2(decov_2)
         gw3 = self.gw3(decov_3)
-        gw4 = self.gw4(decov_4)
-        gw5 = self.gw5(decov_5)
-        gw6 = self.gw6(l6)
+        # gw4 = self.gw4(decov_4)
+        # gw5 = self.gw5(decov_5)
+        # gw6 = self.gw6(l6)
 
         if not self.concat_feature:
-            return {"gw2": gw2, "gw3": gw3, "gw4": gw4}
+            return {"gw3": gw3}
         else:
             # concat_feature1 = self.concat1(decov_1)
-            concat_feature2 = self.concat2(decov_2)
+            # concat_feature2 = self.concat2(decov_2)
             concat_feature3 = self.concat3(decov_3)
-            concat_feature4 = self.concat4(decov_4)
-            concat_feature5 = self.concat5(decov_5)
-            concat_feature6 = self.concat6(l6)
-            return {"gw2": gw2, "gw3": gw3, "gw4": gw4, "gw5": gw5, "gw6": gw6,
-                    "concat_feature2": concat_feature2, "concat_feature3": concat_feature3, "concat_feature4": concat_feature4,
-                    "concat_feature5": concat_feature5, "concat_feature6": concat_feature6}
+            # concat_feature4 = self.concat4(decov_4)
+            # concat_feature5 = self.concat5(decov_5)
+            # concat_feature6 = self.concat6(l6)
+            return {"gw3": gw3,
+                    "concat_feature3": concat_feature3}
 
 class hourglassup(nn.Module):
     def __init__(self, in_channels):
@@ -513,57 +512,58 @@ class bjnet(nn.Module):
 
             # gwc_volume2 = build_gwc_volume(features_left["gw2"], features_right["gw2"], self.maxdisp // 8,
             #                             self.num_groups)
-            # gwc_volume3 = build_gwc_volume(features_left["gw3"], features_right["gw3"], self.maxdisp // 8,
+            gwc_volume3 = build_gwc_volume(features_left["gw3"], features_right["gw3"], self.maxdisp // 8,
             #                             self.num_groups) 
-            gwc_volume4 = build_gwc_volume(features_left["gw4"], features_right["gw4"], self.maxdisp // 8,
-                                        self.num_groups)
-            gwc_volume5 = build_gwc_volume(features_left["gw5"], features_right["gw5"], self.maxdisp // 16,
-                                        self.num_groups)
-            gwc_volume6 = build_gwc_volume(features_left["gw6"], features_right["gw6"], self.maxdisp // 32,
-                                        self.num_groups)
+            # gwc_volume4 = build_gwc_volume(features_left["gw4"], features_right["gw4"], self.maxdisp // 8,
+            #                             self.num_groups)
+            # gwc_volume5 = build_gwc_volume(features_left["gw5"], features_right["gw5"], self.maxdisp // 16,
+            #                             self.num_groups)
+            # gwc_volume6 = build_gwc_volume(features_left["gw6"], features_right["gw6"], self.maxdisp // 32,
+            #                             self.num_groups)
             if self.use_concat_volume:
                 # concat_volume2 = build_concat_volume(features_left["concat_feature2"], features_right["concat_feature2"],
                 #                                     self.maxdisp // 8)
-                # concat_volume3 = build_concat_volume(features_left["concat_feature3"], features_right["concat_feature3"],
-                #                                     self.maxdisp // 8)
-                concat_volume4 = build_concat_volume(features_left["concat_feature4"], features_right["concat_feature4"],
+                concat_volume3 = build_concat_volume(features_left["concat_feature3"], features_right["concat_feature3"],
                                                     self.maxdisp // 8)
-                concat_volume5 = build_concat_volume(features_left["concat_feature5"], features_right["concat_feature5"],
-                                                    self.maxdisp // 16)
-                concat_volume6 = build_concat_volume(features_left["concat_feature6"], features_right["concat_feature6"],
-                                                    self.maxdisp // 32)
+                # concat_volume4 = build_concat_volume(features_left["concat_feature4"], features_right["concat_feature4"],
+                #                                     self.maxdisp // 8)
+                # concat_volume5 = build_concat_volume(features_left["concat_feature5"], features_right["concat_feature5"],
+                #                                     self.maxdisp // 16)
+                # concat_volume6 = build_concat_volume(features_left["concat_feature6"], features_right["concat_feature6"],
+                #                                     self.maxdisp // 32)
                 # volume2 = torch.cat((gwc_volume2, concat_volume2), 1)
-                # volume3 = torch.cat((gwc_volume3, concat_volume3), 1)
-                volume4 = torch.cat((gwc_volume4, concat_volume4), 1)
-                volume5 = torch.cat((gwc_volume5, concat_volume5), 1)
-                volume6 = torch.cat((gwc_volume6, concat_volume6), 1)
+                volume3 = torch.cat((gwc_volume3, concat_volume3), 1)
+                # volume4 = torch.cat((gwc_volume4, concat_volume4), 1)
+                # volume5 = torch.cat((gwc_volume5, concat_volume5), 1)
+                # volume6 = torch.cat((gwc_volume6, concat_volume6), 1)
 
             else:
                 volume4 = gwc_volume4
+
             # cost0_2 = self.dres0_2(volume2)
             # cost0_2 = self.dres1_2(cost0_2) + cost0_2
-            # cost0_3 = self.dres0_3(volume3)
-            # cost0_3 = self.dres1_3(cost0_3) + cost0_3
-            cost0_4 = self.dres0_4(volume4)
-            cost0_4 = self.dres1_4(cost0_4) + cost0_4
-            cost0_5 = self.dres0_5(volume5)
-            cost0_5 = self.dres1_5(cost0_5) + cost0_5
-            cost0_6 = self.dres0_6(volume6)
-            cost0_6 = self.dres1_6(cost0_6) + cost0_6
-            out1_4 = self.combine1(cost0_4, cost0_5, cost0_6)
-            out2_4 = self.dres3(out1_4)
-            # ???????????????????????????????????????????????????????????????
+            cost0_3 = self.dres0_3(volume3)
+            cost0_3 = self.dres1_3(cost0_3) + cost0_3
+            # cost0_4 = self.dres0_4(volume4)
+            # cost0_4 = self.dres1_4(cost0_4) + cost0_4
+            # cost0_5 = self.dres0_5(volume5)
+            # cost0_5 = self.dres1_5(cost0_5) + cost0_5
+            # cost0_6 = self.dres0_6(volume6)
+            # cost0_6 = self.dres1_6(cost0_6) + cost0_6
+            # out1_4 = self.combine1(cost0_4, cost0_5, cost0_6)
+            # out2_4 = self.dres3(out1_4)
+            # # ???????????????????????????????????????????????????????????????
 
-            cost2_s4 = self.classif2(out2_4)
-            cost2_s4 = torch.squeeze(cost2_s4, 1)
-            pred2_possibility_s4 = F.softmax(cost2_s4, dim=1)
+            # cost2_s4 = self.classif2(out2_4)
+            # cost2_s4 = torch.squeeze(cost2_s4, 1)
+            # pred2_possibility_s4 = F.softmax(cost2_s4, dim=1)
             
-            pred2_s4 = disparity_regression(pred2_possibility_s4, self.maxdisp // 8).unsqueeze(1)
+            # pred2_s4 = disparity_regression(pred2_possibility_s4, self.maxdisp // 8).unsqueeze(1)
 
 
         if True : #self.training
-            cost0_4 = self.classif0(cost0_4)
-            cost1_4 = self.classif1(out1_4)
+            cost0_4 = self.classif0(cost0_3)
+            # cost1_4 = self.classif1(out1_4)
 
             cost0_4 = F.upsample(cost0_4, [self.maxdisp, left.size()[2], left.size()[3]], mode='trilinear', align_corners=True)
             cost0_4 = torch.squeeze(cost0_4, 1)
@@ -573,18 +573,18 @@ class bjnet(nn.Module):
             return [pred0_4]
 
         else: # ????????????????????????????????????????????????
-            pred2_s4 = F.upsample(pred2_s4 * 8, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
-            pred2_s4 = torch.squeeze(pred2_s4, 1)
+            # pred2_s4 = F.upsample(pred2_s4 * 8, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
+            # pred2_s4 = torch.squeeze(pred2_s4, 1)
 
-            pred1_s3_up = F.upsample(pred1_s3 * 4, [left.size()[2], left.size()[3]], mode='bilinear',
-                                     align_corners=True)
-            pred1_s3_up = torch.squeeze(pred1_s3_up, 1)
+            # pred1_s3_up = F.upsample(pred1_s3 * 4, [left.size()[2], left.size()[3]], mode='bilinear',
+            #                          align_corners=True)
+            # pred1_s3_up = torch.squeeze(pred1_s3_up, 1)
 
-            pred1_s2 = F.upsample(pred1_s2 * 2, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
-            pred1_s2 = torch.squeeze(pred1_s2, 1)
+            # pred1_s2 = F.upsample(pred1_s2 * 2, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
+            # pred1_s2 = torch.squeeze(pred1_s2, 1)
 
 
-            return [pred1_s2], [pred1_s3_up], [pred2_s4]
+            # return [pred1_s2], [pred1_s3_up], [pred2_s4]
 
 
 def BJNet(d,net):
