@@ -1,5 +1,5 @@
 # CFNet modified  
-## BJNet stands for Better Job net
+## Better Job net
 
 BJNet_fused_1st
   1. fused cost volume & cascade coat volume & hourglass 제거
