@@ -8,4 +8,4 @@
 ```
 # Acknowledgements
 Thanks to the CFNet.
-Everything here stems from CFNet.
+Almost everything here stems from CFNet.
