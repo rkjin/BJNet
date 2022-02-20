@@ -10,6 +10,11 @@ BJNet_fused_2nd
   1. fused cost volume & cascade coat volume & hourglass 제거
   2. fused volume 중 gw3 만 사용
 
+Calibrate Stereo camera 
+  look camera folder
+
+Convert movie file
+  $source ./scripts/movie.sh
 
 
 ```
