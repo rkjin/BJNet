@@ -12,7 +12,7 @@ BJNet_fused_2nd
 
 BJNet_3rd
   1. disparity variance modified
-  2. ...
+  2. new cost volume generation 
 
 Calibrate Stereo camera<br>
   - look camera folder
