@@ -223,9 +223,9 @@ class hourglassup(nn.Module):
 
         # conv8 = FMish(self.conv8(conv4) + self.redir2(conv2)) #[1, 64, 16, 16, 32])
         # conv9 = FMish(self.conv9(conv8) + self.redir1(x))#[1, 32, 32, 32, 64])
-
-
-        return x  # conv9
+        conv8 = FMish(self.conv8(feature5) + self.redir2(feature4)) #[1, 64, 16, 16, 32])      # 추가 ????????????
+        conv9 = FMish(self.conv9(conv8) + self.redir1(x))           #[1, 32, 32, 32, 64])      # 추가 ?????????????
+        return conv9 # (?)
 
 class hourglass(nn.Module):
     def __init__(self, in_channels):
@@ -297,27 +297,26 @@ class bjnet(nn.Module):
 #       dres0_2, dres0_3 추가
         self.dres0_2 = nn.Sequential(convbn_3d(self.num_groups + self.concat_channels*2, 8, 3, 1, 1),
                                    Mish(),
-                                   convbn_3d(32, 32, 3, 1, 1),
+                                   convbn_3d(8, 8, 3, 1, 1),
                                    Mish())
-
-        self.dres1_2 = nn.Sequential(convbn_3d(32, 32, 3, 1, 1),
+        self.dres1_2 = nn.Sequential(convbn_3d(8, 8, 3, 1, 1),
                                    Mish(),
-                                   convbn_3d(32, 32, 3, 1, 1))
+                                   convbn_3d(8, 8, 3, 1, 1))
+
+
         self.dres0_3 = nn.Sequential(convbn_3d(self.num_groups + self.concat_channels*2, 16, 3, 1, 1),
                                    Mish(),
-                                   convbn_3d(32, 32, 3, 1, 1),
+                                   convbn_3d(16, 16, 3, 1, 1),
                                    Mish())
-
-        self.dres1_3 = nn.Sequential(convbn_3d(32, 32, 3, 1, 1),
+        self.dres1_3 = nn.Sequential(convbn_3d(16, 16, 3, 1, 1),
                                    Mish(),
-                                   convbn_3d(32, 32, 3, 1, 1))
+                                   convbn_3d(16, 16, 3, 1, 1))
 
 
         self.dres0_4 = nn.Sequential(convbn_3d(self.num_groups + self.concat_channels*2, 32, 3, 1, 1),
                                    Mish(),
                                    convbn_3d(32, 32, 3, 1, 1),
                                    Mish())
-
         self.dres1_4 = nn.Sequential(convbn_3d(32, 32, 3, 1, 1),
                                    Mish(),
                                    convbn_3d(32, 32, 3, 1, 1))
@@ -327,7 +326,6 @@ class bjnet(nn.Module):
                                    Mish(),
                                    convbn_3d(64, 64, 3, 1, 1),
                                    Mish())
-
         self.dres1_5 = nn.Sequential(convbn_3d(64, 64, 3, 1, 1),
                                    Mish(),
                                    convbn_3d(64, 64, 3, 1, 1))
@@ -336,7 +334,6 @@ class bjnet(nn.Module):
                                    Mish(),
                                    convbn_3d(64, 64, 3, 1, 1),
                                    Mish())
-
         self.dres1_6 = nn.Sequential(convbn_3d(64, 64, 3, 1, 1),
                                    Mish(),
                                    convbn_3d(64, 64, 3, 1, 1))
@@ -543,35 +540,32 @@ class bjnet(nn.Module):
             #????????????????????????????????????????????????????????????????    
             cost0_2 = self.dres0_2(volume2) #추가
             cost0_2 = self.dres1_2(cost0_2) + cost0_2 #추가
-            cost0_3 = self.dres0_3(volume3) #추가
-            cost0_3 = self.dres1_3(cost0_3) + cost0_3 #추가
+            # cost0_3 = self.dres0_3(volume3) #추가
+            # cost0_3 = self.dres1_3(cost0_3) + cost0_3 #추가
             cost0_4 = self.dres0_4(volume4)
             cost0_4 = self.dres1_4(cost0_4) + cost0_4
-            cost0_5 = self.dres0_5(volume5)
-            cost0_5 = self.dres1_5(cost0_5) + cost0_5
+            # cost0_5 = self.dres0_5(volume5)
+            # cost0_5 = self.dres1_5(cost0_5) + cost0_5
             cost0_6 = self.dres0_6(volume6)
             cost0_6 = self.dres1_6(cost0_6) + cost0_6
-            out1_4 = self.combine1(cost0_4, cost0_5, cost0_6)
-            out2_4 = self.dres3(out1_4)
+            out1_4 = self.combine1(cost0_2, cost0_4, cost0_6) #???????????????
+            out2_4 = self.dres3(out1_4) #?????????????????
             # ???????????????????????????????????????????????????????????????
 
-            cost2_s4 = self.classif2(out2_4)
-            cost2_s4 = torch.squeeze(cost2_s4, 1)
-            pred2_possibility_s4 = F.softmax(cost2_s4, dim=1)
-            
-            pred2_s4 = disparity_regression(pred2_possibility_s4, self.maxdisp // 8).unsqueeze(1)
+            cost2_s4 = self.classif2(out2_4) #???????????????
+            cost2_s4 = torch.squeeze(cost2_s4, 1) #???????????????
+            pred2_possibility_s4 = F.softmax(cost2_s4, dim=1) #???????????????
+            pred2_s4 = disparity_regression(pred2_possibility_s4, self.maxdisp // 8).unsqueeze(1) #???????????????
 
 
         if True : #self.training
-            cost0_4 = self.classif0(cost0_4)
-            cost1_4 = self.classif1(out1_4)
+            cost1_4 = self.classif1(out1_4)#[1, 1, 32, 32, 64])  #???????????????
+            cost1_4 = F.upsample(cost1_4, [self.maxdisp, left.size()[2], left.size()[3]], mode='trilinear', align_corners=True)#[1, 1, 256, 256, 512]) #???????????????
+            cost1_4 = torch.squeeze(cost1_4, 1)#[1, 256, 256, 512]) #???????????????
+            pred1_4 = F.softmax(cost1_4, dim=1)#[1, 256, 256, 512]) #???????????????
+            pred1_4 = disparity_regression(pred1_4, self.maxdisp)#[1, 256, 512]) #???????????????
 
-            cost0_4 = F.upsample(cost0_4, [self.maxdisp, left.size()[2], left.size()[3]], mode='trilinear', align_corners=True)
-            cost0_4 = torch.squeeze(cost0_4, 1)
-            pred0_4 = F.softmax(cost0_4, dim=1)
-            pred0_4 = disparity_regression(pred0_4, self.maxdisp)
-
-            return [pred0_4]
+            return [pred1_4]
 
         else: # ????????????????????????????????????????????????
             pred2_s4 = F.upsample(pred2_s4 * 8, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)
