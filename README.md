@@ -16,6 +16,8 @@ Calibrate Stereo camera<br>
 Convert movie file<br>
   - $source ./scripts/movie.sh
 
+Convert disparit map to color map 
+  - look camera/convert_3D.py
 
 ```
 # Acknowledgements
