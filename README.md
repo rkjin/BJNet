@@ -11,10 +11,10 @@ BJNet_fused_2nd
   2. fused volume 중 gw3 만 사용
 
 Calibrate Stereo camera<br>
-  look camera folder
+  - look camera folder
 
 Convert movie file<br>
-  $source ./scripts/movie.sh
+  - $source ./scripts/movie.sh
 
 
 ```
