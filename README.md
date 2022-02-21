@@ -4,7 +4,7 @@
 BJNet_1st
   1. fused cost volume part & cascade cost volume part & hourglass 제거
   2. fused cost volume 중 gw4 만 사용
-  3. prediction time and memeory was decreased less than 2/3.
+  3. prediction time and memory was decreased less than 2/3.
   
 BJNet_2nd
   1. fused cost volume part & cascade volume part & hourglass 제거
