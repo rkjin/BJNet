@@ -12,7 +12,8 @@ BJNet_2nd
   3. 1st에 비하여 error 감소, 변환시간 증가
 
 BJNet_3rd
-  1. disparity variance modified<br>
+  1. fused cost volume part & cascade volume part & hourglass 제거
+  2. disparity variance modified<br>
      variance = sum{(d*sigma(di) - sum(d*sigma(di)))^2} / (N-1)
   3. new cost volume generation<br>
      new cost = 1/abs(feature_left - feature_right)
