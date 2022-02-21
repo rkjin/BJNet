@@ -11,8 +11,11 @@ BJNet_fused_2nd
   2. fused volume 중 gw3 만 사용
 
 BJNet_3rd
-  1. disparity variance modified
-  2. new cost volume generation 
+  1. disparity variance modified<br>
+     variance = sum{(d*sigma(di) - sum(d*sigma(di)))^2} / (N-1)
+  3. new cost volume generation<br>
+     new cost = 1/abs(feature_left - feature_right)
+     
 
 Calibrate Stereo camera<br>
   - look camera folder
