@@ -53,13 +53,13 @@ import cv2
 
 capl = cv2.VideoCapture('/content/CFNet/inputl.avi')
 capr = cv2.VideoCapture('/content/CFNet/inputr.avi')
-capl.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-capl.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-capr.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-capr.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+# capl.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+# capl.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+# capr.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+# capr.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 fps = capl.get(cv2.CAP_PROP_FPS)
 fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-out = cv2.VideoWriter('/content/CFNet/output.avi', fourcc, fps, (1242, 375))
+out = cv2.VideoWriter('/content/CFNet/output.avi', fourcc, fps, (512, 256))
 
 
 def test():
@@ -71,11 +71,11 @@ def test():
         batch_idx += 1
         retl, framel = capl.read()
         retr, framer = capr.read()
-        left_img = cv2.resize(framel,dsize=(1242,400), interpolation=cv2.INTER_AREA)[25:,:,:]
-        right_img = cv2.resize(framer,dsize=(1242,400), interpolation=cv2.INTER_AREA)[:25,:,:]
-        # cv2.imwrite('left.jpg',left_img)
-        # cv2.imwrite('right.jpg',right_img)
-
+        left_img = cv2.resize(framel,dsize=(512,256), interpolation=cv2.INTER_AREA)
+        right_img = cv2.resize(framer,dsize=(512,256), interpolation=cv2.INTER_AREA)
+        cv2.imshow('left.jpg',left_img)
+        cv2.imshow('right.jpg',right_img)
+        cv2.waitKey(1)
         processed = get_transform()
         left_img = processed(left_img).numpy()
         right_img = processed(right_img).numpy()
@@ -86,7 +86,6 @@ def test():
                                 constant_values=0)
 
         sample['left'] = torch.Tensor(left_img).unsqueeze(dim =0)
-
         sample['right'] = torch.Tensor(right_img).unsqueeze(dim =0)     
         sample["top_pad"] = torch.Tensor(np.array([top_pad],dtype=int))#384 - h
         sample["right_pad"] = torch.Tensor(np.array([right_pad],dtype=int)) #1248 - w
@@ -96,12 +95,8 @@ def test():
 
         start_time = time.time()
         disp_est_np = tensor2numpy(test_sample(sample))
-        print('top pad',sample['top_pad'])
-        print('right pad',sample['right_pad'])
         top_pad_np = tensor2numpy(sample["top_pad"])
         right_pad_np = tensor2numpy(sample["right_pad"])
-        print(top_pad_np,right_pad_np)
-
 
         left_filenames = sample["left_filename"]
         print('Iter {}/{}, time = {:3f}'.format(batch_idx, len(TestImgLoader),
