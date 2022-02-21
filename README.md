@@ -16,7 +16,7 @@ BJNet_3rd
   2. disparity variance modified<br>
      variance = sum{(d*sigma(di) - sum(d*sigma(di)))^2} / (N-1)
   3. new cost volume generation<br>
-     new cost = 1/abs(feature_left - feature_right)
+     new cost = 1/abs(feature_left - feature_right)<br>
      gwc & concat cost volume generation 제거
 
 Calibrate Stereo camera<br>
