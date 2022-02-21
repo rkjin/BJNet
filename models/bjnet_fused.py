@@ -513,7 +513,7 @@ class bjnet(nn.Module):
             # gwc_volume2 = build_gwc_volume(features_left["gw2"], features_right["gw2"], self.maxdisp // 8,
             #                             self.num_groups)
             gwc_volume3 = build_gwc_volume(features_left["gw3"], features_right["gw3"], self.maxdisp // 8,
-            #                             self.num_groups) 
+                                         self.num_groups) 
             # gwc_volume4 = build_gwc_volume(features_left["gw4"], features_right["gw4"], self.maxdisp // 8,
             #                             self.num_groups)
             # gwc_volume5 = build_gwc_volume(features_left["gw5"], features_right["gw5"], self.maxdisp // 16,
