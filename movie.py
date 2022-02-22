@@ -40,7 +40,7 @@ test_dataset = StereoDataset(args.datapath, args.testlist, False)
 TestImgLoader = DataLoader(test_dataset, 1, shuffle=False, num_workers=4, drop_last=False)
 
 # model, optimizer
-model = __models__[args.model](args.maxdisp,args.model)
+model = __models__[args.model](args.maxdisp)
 model = nn.DataParallel(model)
 model.cuda()
 
@@ -51,15 +51,15 @@ model.load_state_dict(state_dict['model'])
 
 import cv2 
 
-capl = cv2.VideoCapture('/content/CFNet/inputl.avi')
-capr = cv2.VideoCapture('/content/CFNet/inputr.avi')
+# capl = cv2.VideoCapture('/content/BJNet/ioutputl.avi')
+# capr = cv2.VideoCapture('/content/BJNet/ioutputr.avi')
 # capl.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 # capl.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 # capr.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 # capr.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-fps = capl.get(cv2.CAP_PROP_FPS)
-fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-out = cv2.VideoWriter('/content/CFNet/output.avi', fourcc, fps, (512, 256))
+# fps = capl.get(cv2.CAP_PROP_FPS)
+# fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+# out = cv2.VideoWriter('/content/CFNet/output.avi', fourcc, fps, (512, 256))
 
 
 def test():
@@ -67,20 +67,19 @@ def test():
 #    for batch_idx, sample in enumerate(TestImgLoader):
     sample ={}
     batch_idx = 0
-    while capl.isOpened():
+    while True:
         batch_idx += 1
-        retl, framel = capl.read()
-        retr, framer = capr.read()
+        framel = cv2.imread('/content/drive/MyDrive/my/000000_10l.png')
+        framer = cv2.imread('/content/drive/MyDrive/my/000000_10r.png')
         left_img = cv2.resize(framel,dsize=(512,256), interpolation=cv2.INTER_AREA)
         right_img = cv2.resize(framer,dsize=(512,256), interpolation=cv2.INTER_AREA)
-        cv2.imshow('left.jpg',left_img)
-        cv2.imshow('right.jpg',right_img)
-        cv2.waitKey(1)
+        print(left_img.shape, right_img.shape)
+
         processed = get_transform()
         left_img = processed(left_img).numpy()
         right_img = processed(right_img).numpy()
-        top_pad = 9 # 
-        right_pad = 6 #
+        top_pad = 0 # 
+        right_pad = 0 #
         left_img = np.lib.pad(left_img, ((0, 0), (top_pad, 0), (0, right_pad)), mode='constant', constant_values=0)
         right_img = np.lib.pad(right_img, ((0, 0), (top_pad, 0), (0, right_pad)), mode='constant',
                                 constant_values=0)
@@ -101,7 +100,7 @@ def test():
         left_filenames = sample["left_filename"]
         print('Iter {}/{}, time = {:3f}'.format(batch_idx, len(TestImgLoader),
                                                 time.time() - start_time))
-
+        os.system("nvidia-smi")
         for disp_est, top_pad, right_pad, fn in zip(disp_est_np, top_pad_np, right_pad_np, left_filenames):
 #            print(disp_est, top_pad, right_pad, fn)
             assert len(disp_est.shape) == 2
@@ -113,7 +112,7 @@ def test():
 #            print(type(disp_est_uint), disp_est_uint.shape, disp_est_uint.max())
 #           out.write(disp_est_uint.reshape(375,1242,-1))
             skimage.io.imsave(fn, disp_est_uint)
-        if batch_idx == 10:
+        if batch_idx == 1:
           break
     out.release()
     capl.release()
