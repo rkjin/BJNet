@@ -584,7 +584,7 @@ class bjnet(nn.Module):
             # pred1_s2 = torch.squeeze(pred1_s2, 1)
 
 
-            # return [pred1_s2], [pred1_s3_up], [pred2_s4]
+            return [pred1_s2], [pred1_s3_up], [pred2_s4]
 
 
 def BJNet(d,net):

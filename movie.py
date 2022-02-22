@@ -40,7 +40,7 @@ test_dataset = StereoDataset(args.datapath, args.testlist, False)
 TestImgLoader = DataLoader(test_dataset, 1, shuffle=False, num_workers=4, drop_last=False)
 
 # model, optimizer
-model = __models__[args.model](args.maxdisp)
+model = __models__[args.model](args.maxdisp,args.model)
 model = nn.DataParallel(model)
 model.cuda()
 
@@ -107,13 +107,13 @@ def test():
             assert len(disp_est.shape) == 2
             disp_est = np.array(disp_est[9:, :-6], dtype=np.float32)
             #fn = os.path.join("predictions", fn.split('/')[-1])
-            fn = os.path.join("/content/CFNet/prediction/movie"+str(batch_idx)+".png")
+            fn = os.path.join("/content/BJNet/prediction/movie"+str(batch_idx)+".png")
 #            print("saving to", fn, disp_est.shape)
             disp_est_uint = np.round(disp_est * 256).astype(np.uint16)
 #            print(type(disp_est_uint), disp_est_uint.shape, disp_est_uint.max())
 #           out.write(disp_est_uint.reshape(375,1242,-1))
             skimage.io.imsave(fn, disp_est_uint)
-        if batch_idx == 1:
+        if batch_idx == 10:
           break
     out.release()
     capl.release()
@@ -123,7 +123,7 @@ def test():
 @make_nograd_func
 def test_sample(sample):
     model.eval()
-    disp_ests, pred1_s3_up, pred2_s4 = model(sample['left'].cuda(), sample['right'].cuda())
+    disp_ests = model(sample['left'].cuda(), sample['right'].cuda())
     return disp_ests[-1]
 
 
