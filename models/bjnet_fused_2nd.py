@@ -510,9 +510,9 @@ class bjnet(nn.Module):
 
         if self.net == 'fused': ############################################################################
 
-            # gwc_volume2 = build_gwc_volume(features_left["gw2"], features_right["gw2"], self.maxdisp // 8,
+            # gwc_volume2 = build_gwc_volume(features_left["gw2"], features_right["gw2"], self.maxdisp // 2,
             #                             self.num_groups)
-            gwc_volume3 = build_gwc_volume(features_left["gw3"], features_right["gw3"], self.maxdisp // 8,
+            gwc_volume3 = build_gwc_volume(features_left["gw3"], features_right["gw3"], self.maxdisp // 4,
                                          self.num_groups) 
             # gwc_volume4 = build_gwc_volume(features_left["gw4"], features_right["gw4"], self.maxdisp // 8,
             #                             self.num_groups)
@@ -522,9 +522,9 @@ class bjnet(nn.Module):
             #                             self.num_groups)
             if self.use_concat_volume:
                 # concat_volume2 = build_concat_volume(features_left["concat_feature2"], features_right["concat_feature2"],
-                #                                     self.maxdisp // 8)
+                #                                     self.maxdisp // 2)
                 concat_volume3 = build_concat_volume(features_left["concat_feature3"], features_right["concat_feature3"],
-                                                    self.maxdisp // 8)
+                                                    self.maxdisp // 4)
                 # concat_volume4 = build_concat_volume(features_left["concat_feature4"], features_right["concat_feature4"],
                 #                                     self.maxdisp // 8)
                 # concat_volume5 = build_concat_volume(features_left["concat_feature5"], features_right["concat_feature5"],
@@ -584,7 +584,7 @@ class bjnet(nn.Module):
             # pred1_s2 = torch.squeeze(pred1_s2, 1)
 
 
-            # return [pred1_s2], [pred1_s3_up], [pred2_s4]
+            return [pred1_s2], [pred1_s3_up], [pred2_s4]
 
 
 def BJNet(d,net):
