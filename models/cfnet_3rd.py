@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.utils.data
 from torch.autograd import Variable
 import torch.nn.functional as F
-from models.submodule import *
+from models.submodule_3rd import *
 import math
 
 
@@ -546,8 +546,7 @@ class cfnet(nn.Module):
         mindisparity_s3 = pred2_s4_cur - (self.gamma_s3 + 1) * pred2_v_s4 - self.beta_s3
         maxdisparity_s3 = pred2_s4_cur + (self.gamma_s3 + 1) * pred2_v_s4 + self.beta_s3
         maxdisparity_s3 = F.upsample(maxdisparity_s3 * 2, [left.size()[2] // 4, left.size()[3] // 4], mode='bilinear', align_corners=True)
-        mindisparity_s3 = F.upsample(mindisparity_s3 * 2, [left.size()[2] // 4, left.size()[3] // 4], mode='bilinear',
-                                    align_corners=True)
+        mindisparity_s3 = F.upsample(mindisparity_s3 * 2, [left.size()[2] // 4, left.size()[3] // 4], mode='bilinear', align_corners=True)
 
         mindisparity_s3_1, maxdisparity_s3_1 = self.generate_search_range(self.sample_count_s3 + 1, mindisparity_s3, maxdisparity_s3, scale = 2)#
         #[1, 1, 64, 128]) torch.Size([1, 1, 64, 128])

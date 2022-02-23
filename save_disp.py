@@ -59,7 +59,7 @@ def test():
         right_pad_np = tensor2numpy(sample["right_pad"])
         left_filenames = sample["left_filename"]
         print('Iter {}/{}, time = {:3f}'.format(batch_idx, len(TestImgLoader),
-                                                time.time() - start_time)
+                                                time.time() - start_time))
                                                 
         for disp_est, top_pad, right_pad, fn in zip(disp_est_np, top_pad_np, right_pad_np, left_filenames):
             assert len(disp_est.shape) == 2
