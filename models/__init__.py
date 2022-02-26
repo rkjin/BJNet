@@ -1,7 +1,7 @@
-from models.bjnet_fused_3rd import BJNet
+from models.cfnet_4th import CFNet_modified
 from models.loss import model_loss
 
 __models__ = {
-    "fused": BJNet,
+    "cfnet_modified": CFNet_modified,
     "cascade": BJNet,
 }

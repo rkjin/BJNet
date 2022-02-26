@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.utils.data
 from torch.autograd import Variable
 import torch.nn.functional as F
-from models.submodule_3rd import *
+from models.submodule_4th import *
 import math
 
 
@@ -669,5 +669,5 @@ class cfnet(nn.Module):
             return [pred1_s2], [pred1_s3_up], [pred2_s4]
 
 
-def CFNet(d):
+def CFNet_modified(d):
     return cfnet(d, use_concat_volume=True)
