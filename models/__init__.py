@@ -3,5 +3,5 @@ from models.loss import model_loss
 
 __models__ = {
     "cfnet_modified": CFNet_modified,
-    "cascade": BJNet,
+    "cascade": CFNet_modified,
 }
