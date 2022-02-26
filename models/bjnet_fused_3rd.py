@@ -64,7 +64,7 @@ class feature_extraction(nn.Module):
 
         self.gw3 = nn.Sequential(convbn(128, 160, 3, 1, 1, 1),
                                  Mish(),
-                                 nn.Conv2d(160, 160, kernel_size=1, padding=0, stride=1,
+                                 nn.Conv2d(160, 128, kernel_size=1, padding=0, stride=1,
                                            bias=False))
 
         # self.gw4 = nn.Sequential(convbn(192, 160, 3, 1, 1, 1),
@@ -513,7 +513,7 @@ class bjnet(nn.Module):
             # gwc_volume2 = build_gwc_volume(features_left["gw2"], features_right["gw2"], self.maxdisp // 2,
             #                             self.num_groups)
             gwc_volume3 = build_gwc_volume(features_left["gw3"], features_right["gw3"], self.maxdisp // 4,
-                                         self.num_groups) #[1, 40, 64, 64, 128])
+                                         self.num_groups = 64) #[1, 40, 64, 64, 128])
             # gwc_volume4 = build_gwc_volume(features_left["gw4"], features_right["gw4"], self.maxdisp // 8,
             #                             self.num_groups) #[1, 40, 32, 32, 64])
             # gwc_volume5 = build_gwc_volume(features_left["gw5"], features_right["gw5"], self.maxdisp // 16,
