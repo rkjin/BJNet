@@ -20,8 +20,9 @@ BJNet_3rd
   3. new cost volume generation
   
 BJNet_4th
-  1. fused cost volume part & cascade volume part & hourglass  
- 
+  1. fused cost volume part & cascade volume part & hourglass 
+  2. reduce error  
+  
 
 Calibrate Stereo camera<br>
   - look camera folder
