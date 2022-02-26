@@ -18,6 +18,10 @@ BJNet_3rd
   1. fused cost volume part & cascade volume part & hourglass 제거
   2. concat cost volume generation 제거
   3. new cost volume generation
+  4. 
+BJNet_4th
+  1. fused cost volume part & cascade volume part & hourglass  
+ 
 
 Calibrate Stereo camera<br>
   - look camera folder
