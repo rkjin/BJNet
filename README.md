@@ -20,8 +20,11 @@ BJNet_3rd
   3. new cost volume generation
   
 BJNet_4th
-  1. fused cost volume part & cascade volume part & hourglass 
-  2. reduce error  
+  1. disparity variance modified<br>
+     sum((di - sum(d*sigma))**2)/(maxdisp -1)
+  2. gwc cost volume modified<br>
+     torch.reciprocal(fea1 - mea2 + 1e-18) -> not good   
+ 
   
 
 Calibrate Stereo camera<br>
