@@ -22,7 +22,7 @@ import gc
 cudnn.benchmark = True
 
 parser = argparse.ArgumentParser(description='Cascade and Fused Cost Volume for Robust Stereo Matching(CFNet)')
-parser.add_argument('--model', default='bjnet_fused', help='select a model structure', choices=__models__.keys())
+parser.add_argument('--model', default='cfnet', help='select a model structure', choices=__models__.keys())
 parser.add_argument('--maxdisp', type=int, default=192, help='maximum disparity')
 
 parser.add_argument('--dataset', required=True, help='dataset name', choices=__datasets__.keys())
@@ -41,8 +41,8 @@ parser.add_argument('--loadckpt', help='load the weights from a specific checkpo
 parser.add_argument('--resume', action='store_true', help='continue training the model')
 parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed (default: 1)')
 
-parser.add_argument('--summary_freq', type=int, default=40, help='the frequency of saving summary')
-parser.add_argument('--save_freq', type=int, default=20, help='the frequency of saving checkpoint')
+parser.add_argument('--summary_freq', type=int, default=20, help='the frequency of saving summary')
+parser.add_argument('--save_freq', type=int, default=1, help='the frequency of saving checkpoint')
 
 # parse arguments, set seeds
 args = parser.parse_args()
@@ -142,7 +142,7 @@ def train():
         print('MAX epoch %d total test error = %.5f' % (bestepoch, error))
         gc.collect()
     print('MAX epoch %d total test error = %.5f' % (bestepoch, error))
-    torch.save(model,'/content/drive/MyDrive/logdir/CFNet.pth')
+
 
 # train one sample
 def train_sample(sample, compute_metrics=False):
@@ -157,7 +157,7 @@ def train_sample(sample, compute_metrics=False):
 
     disp_ests = model(imgL, imgR)
     mask = (disp_gt < args.maxdisp) & (disp_gt > 0)
-    loss = model_loss(disp_ests, disp_gt, mask) ###############################
+    loss = model_loss(disp_ests, disp_gt, mask)
 
     scalar_outputs = {"loss": loss}
     image_outputs = {"disp_est": disp_ests, "disp_gt": disp_gt, "imgL": imgL, "imgR": imgR}
@@ -185,7 +185,7 @@ def test_sample(sample, compute_metrics=True):
     imgR = imgR.cuda()
     disp_gt = disp_gt.cuda()
 
-    disp_ests = model(imgL, imgR)
+    disp_ests, pred_s3, pred_s4 = model(imgL, imgR)
     mask = (disp_gt < args.maxdisp) & (disp_gt > 0)
     loss = model_loss(disp_ests, disp_gt, mask)
 
