@@ -199,10 +199,8 @@ def build_corrleation_volume(refimg_fea, targetimg_fea, maxdisp, num_groups):
 def warp(x, disp):
     """
     warp an image/tensor (imright) back to imleft, according to the disp
-
     x: [B, C, H, W] (imright)
     disp: [B, 1, H, W] disp
-
     """
     B, C, H, W = x.size()
     # mesh grid
@@ -238,13 +236,9 @@ def warp(x, disp):
 def FMish(x):
 
     '''
-
     Applies the mish function element-wise:
-
     mish(x) = x * tanh(softplus(x)) = x * tanh(ln(1 + exp(x)))
-
     See additional documentation for mish class.
-
     '''
 
     return x * torch.tanh(F.softplus(x))
@@ -310,12 +304,10 @@ class SpatialTransformer(nn.Module):
         Description:
                 Given the left image features, right iamge features and the disparity samples, generates:
                     - Warped right image features
-
         Args:
             :left_input: Left Image Features
             :right_input: Right Image Features
             :disparity_samples:  Disparity Samples
-
         Returns:
             :warped_right_feature_map: right iamge features warped according to input disparity.
             :left_feature_map: expanded left image features.
@@ -347,4 +339,3 @@ class SpatialTransformer(nn.Module):
             (warped_right_feature_map) + torch.zeros_like(warped_right_feature_map)
 
         return warped_right_feature_map, left_feature_map
-

@@ -41,8 +41,8 @@ parser.add_argument('--loadckpt', help='load the weights from a specific checkpo
 parser.add_argument('--resume', action='store_true', help='continue training the model')
 parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed (default: 1)')
 
-parser.add_argument('--summary_freq', type=int, default=40, help='the frequency of saving summary')
-parser.add_argument('--save_freq', type=int, default=20, help='the frequency of saving checkpoint')
+parser.add_argument('--summary_freq', type=int, default=20, help='the frequency of saving summary')
+parser.add_argument('--save_freq', type=int, default=1, help='the frequency of saving checkpoint')
 
 # parse arguments, set seeds
 args = parser.parse_args()
