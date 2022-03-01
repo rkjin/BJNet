@@ -65,7 +65,7 @@ def test():
             assert len(disp_est.shape) == 2
             disp_est = np.array(disp_est[top_pad:, :-right_pad], dtype=np.float32)
             #fn = os.path.join("predictions", fn.split('/')[-1])
-            fn = os.path.join("/content/BJNet/prediction/", fn.split('/')[-1])
+            fn = os.path.join("/content/drive/MyDrive/my", fn.split('/')[-1])
             print("saving to", fn, disp_est.shape)
             disp_est_uint = np.round(disp_est * 256).astype(np.uint16)
             skimage.io.imsave(fn, disp_est_uint)
