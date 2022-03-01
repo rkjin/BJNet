@@ -206,7 +206,7 @@ class hourglassup(nn.Module):
                                       Mish())
 
         self.redir1 = convbn_3d(in_channels, in_channels, kernel_size=1, stride=1, pad=0)
-        self.redir2 = convbn_3d(in_channels * 2, in_channels * 2, kernel_size=1, stride=1, pad=0)
+        self.redir2 = convbn_3d(in_channels * 1, in_channels * 2, kernel_size=1, stride=1, pad=0)
         self.redir3 = convbn_3d(in_channels * 4, in_channels * 4, kernel_size=1, stride=1, pad=0)
 
 
