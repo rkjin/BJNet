@@ -659,6 +659,5 @@ class cfnet(nn.Module):
 
             return [pred1_s2], [pred1_s3_up], [pred2_s4]
 
-
 def CFNet_modified(d):
     return cfnet(d, use_concat_volume=True)
