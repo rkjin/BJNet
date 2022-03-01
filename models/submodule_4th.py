@@ -155,7 +155,7 @@ def groupwise_correlation(fea1, fea2, num_groups):
     B, C, H, W = fea1.shape
     assert C % num_groups == 0
     channels_per_group = C // num_groups
-    cost = (fea1 * fea2).view([B, num_groups, channels_per_group, H, W]).mean(dim=2)
+    cost = torch.reciprocal(fea1 - fea2 + 1e-18).view([B, num_groups, channels_per_group, H, W]).mean(dim=2)
     assert cost.shape == (B, num_groups, H, W)
     return cost
 
@@ -163,7 +163,7 @@ def groupwise_correlation_4D(fea1, fea2, num_groups):
     B, C, D, H, W = fea1.shape
     assert C % num_groups == 0
     channels_per_group = C // num_groups
-    cost = (fea1 * fea2).view([B, num_groups, channels_per_group, D, H, W]).mean(dim=2)
+    cost = torch.reciprocal(fea1 - fea2 + 1e-18).view([B, num_groups, channels_per_group, D, H, W]).mean(dim=2)
     assert cost.shape == (B, num_groups, D, H, W)
     return cost
 
