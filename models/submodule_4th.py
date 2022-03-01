@@ -124,22 +124,13 @@ def disparity_regression(x, maxdisp):
     disp_values = disp_values.view(1, maxdisp, 1, 1)
     return torch.sum(x * disp_values, 1, keepdim=False)
 
-# def disparity_variance(x, maxdisp, disparity):
-#     # the shape of disparity should be B,1,H,W, return is the variance of the cost volume [B,1,H,W]
-#     assert len(x.shape) == 4
-#     disp_values = torch.arange(0, maxdisp, dtype=x.dtype, device=x.device)
-#     disp_values = disp_values.view(1, maxdisp, 1, 1)
-#     disp_values = (disp_values - disparity) ** 2
-#     return torch.sum(x * disp_values, 1, keepdim=True)
-
 def disparity_variance(x, maxdisp, disparity):
     # the shape of disparity should be B,1,H,W, return is the variance of the cost volume [B,1,H,W]
     assert len(x.shape) == 4
     disp_values = torch.arange(0, maxdisp, dtype=x.dtype, device=x.device)
     disp_values = disp_values.view(1, maxdisp, 1, 1)
-    disp_values = (disp_values * x - disparity) ** 2
-    return torch.sum(disp_values, 1, keepdim=True) / (maxdisp -1)
-
+    disp_values = (disp_values - disparity) ** 2
+    return torch.sum(x * disp_values, 1, keepdim=True)
 
 def disparity_variance_confidence(x, disparity_samples, disparity):
     # the shape of disparity should be B,1,H,W, return is the uncertainty estimation
@@ -164,8 +155,7 @@ def groupwise_correlation(fea1, fea2, num_groups):
     B, C, H, W = fea1.shape
     assert C % num_groups == 0
     channels_per_group = C // num_groups
-    #cost = (fea1 * fea2).view([B, num_groups, channels_per_group, H, W]).mean(dim=2)
-    cost = torch.reciprocal(fea1 - fea2 + 1e-18).view([B, num_groups, channels_per_group, H, W]).mean(dim=2)
+    cost = (fea1 * fea2).view([B, num_groups, channels_per_group, H, W]).mean(dim=2)
     assert cost.shape == (B, num_groups, H, W)
     return cost
 
