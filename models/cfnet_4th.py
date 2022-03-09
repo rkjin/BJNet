@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.utils.data
 from torch.autograd import Variable
 import torch.nn.functional as F
-from models.submodule_4th import *
+from models.submodule import *
 import math
 
 
@@ -206,7 +206,7 @@ class hourglassup(nn.Module):
                                       Mish())
 
         self.redir1 = convbn_3d(in_channels, in_channels, kernel_size=1, stride=1, pad=0)
-        self.redir2 = convbn_3d(in_channels * 1, in_channels * 2, kernel_size=1, stride=1, pad=0)
+        self.redir2 = convbn_3d(in_channels * 2, in_channels * 2, kernel_size=1, stride=1, pad=0)
         self.redir3 = convbn_3d(in_channels * 4, in_channels * 4, kernel_size=1, stride=1, pad=0)
 
 
@@ -658,6 +658,8 @@ class cfnet(nn.Module):
 
 
             return [pred1_s2], [pred1_s3_up], [pred2_s4]
+
+
 
 def CFNet_modified(d):
     return cfnet(d, use_concat_volume=True)
