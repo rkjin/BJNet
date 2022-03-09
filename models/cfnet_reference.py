@@ -531,8 +531,8 @@ class cfnet(nn.Module):
         cost0_5 = self.dres1_5(cost0_5) + cost0_5 # [1, 64, 16, 16, 32])
         cost0_6 = self.dres0_6(volume6)            #[1, 64, 8, 8, 16])
         cost0_6 = self.dres1_6(cost0_6) + cost0_6    #[1, 64, 8, 8, 16])
-        out1_4 = self.combine1(cost0_4, cost0_5, cost0_6)#[1, 32, 32, 32, 64])
-        out2_4 = self.dres3(out1_4)                     #[1, 32, 32, 32, 64])
+        out1_4 = self.combine1(cost0_4, cost0_5, cost0_6)#[1, 32, 32, 32, 64]) hourglassup
+        out2_4 = self.dres3(out1_4)                     #[1, 32, 32, 32, 64]) hourglass
 
         ########   
         cost2_s4 = self.classif2(out2_4)#[1, 1, 32, 32, 64])
