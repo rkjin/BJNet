@@ -312,30 +312,81 @@ class SpatialTransformer(nn.Module):
             :warped_right_feature_map: right iamge features warped according to input disparity.
             :left_feature_map: expanded left image features.
         """
-
+        # left_y_coordinate torch.Size([8192])
+        # left_y_coordinate torch.Size([64, 128])
+        # left_y_coordinate torch.Size([64, 128])
+        # left_y_coordinate torch.Size([1, 64, 128])
+        # right_feature_map torch.Size([1, 12, 16, 64, 128])
+        # left_feature_map torch.Size([1, 12, 16, 64, 128])
+        # disparity_samples torch.Size([1, 16, 64, 128])
+        # right_y_coordinate torch.Size([1, 16, 64, 128])
+        # right_y_coordinate_1 torch.Size([1, 16, 64, 128])
+        # right_y_coordinate torch.Size([1, 16, 64, 128])
+        # warped_right_feature_map torch.Size([1, 12, 16, 64, 128])
+        # right_y_coordinate_1 torch.Size([1, 1, 16, 64, 128])
+        # warped_right_feature_map torch.Size([1, 12, 16, 64, 128])
+        # left_y_coordinate torch.Size([8192])
+        # left_y_coordinate torch.Size([64, 128])
+        # left_y_coordinate torch.Size([64, 128])
+        # left_y_coordinate torch.Size([1, 64, 128])
+        # right_feature_map torch.Size([1, 160, 16, 64, 128])
+        # left_feature_map torch.Size([1, 160, 16, 64, 128])
+        # disparity_samples torch.Size([1, 16, 64, 128])
+        # right_y_coordinate torch.Size([1, 16, 64, 128])
+        # right_y_coordinate_1 torch.Size([1, 16, 64, 128])
+        # right_y_coordinate torch.Size([1, 16, 64, 128])
+        # warped_right_feature_map torch.Size([1, 160, 16, 64, 128])
+        # right_y_coordinate_1 torch.Size([1, 1, 16, 64, 128])
+        # warped_right_feature_map torch.Size([1, 160, 16, 64, 128])
+        # left_y_coordinate torch.Size([32768])
+        # left_y_coordinate torch.Size([128, 256])
+        # left_y_coordinate torch.Size([128, 256])
+        # left_y_coordinate torch.Size([1, 128, 256])
+        # right_feature_map torch.Size([1, 6, 12, 128, 256])
+        # left_feature_map torch.Size([1, 6, 12, 128, 256])
+        # disparity_samples torch.Size([1, 12, 128, 256])
+        # right_y_coordinate torch.Size([1, 12, 128, 256])
+        # right_y_coordinate_1 torch.Size([1, 12, 128, 256])
+        # right_y_coordinate torch.Size([1, 12, 128, 256])
+        # warped_right_feature_map torch.Size([1, 6, 12, 128, 256])
+        # right_y_coordinate_1 torch.Size([1, 1, 12, 128, 256])
+        # warped_right_feature_map torch.Size([1, 6, 12, 128, 256])
+        # left_y_coordinate torch.Size([32768])
+        # left_y_coordinate torch.Size([128, 256])
+        # left_y_coordinate torch.Size([128, 256])
+        # left_y_coordinate torch.Size([1, 128, 256])
+        # right_feature_map torch.Size([1, 80, 12, 128, 256])
+        # left_feature_map torch.Size([1, 80, 12, 128, 256])
+        # disparity_samples torch.Size([1, 12, 128, 256])
+        # right_y_coordinate torch.Size([1, 12, 128, 256])
+        # right_y_coordinate_1 torch.Size([1, 12, 128, 256])
+        # right_y_coordinate torch.Size([1, 12, 128, 256])
+        # warped_right_feature_map torch.Size([1, 80, 12, 128, 256])
+        # right_y_coordinate_1 torch.Size([1, 1, 12, 128, 256])
+        # warped_right_feature_map torch.Size([1, 80, 12, 128, 256])
         device = left_input.get_device()
-        left_y_coordinate = torch.arange(0.0, left_input.size()[3], device=device).repeat(left_input.size()[2])
-        left_y_coordinate = left_y_coordinate.view(left_input.size()[2], left_input.size()[3])
-        left_y_coordinate = torch.clamp(left_y_coordinate, min=0, max=left_input.size()[3] - 1)
-        left_y_coordinate = left_y_coordinate.expand(left_input.size()[0], -1, -1)
+        left_y_coordinate = torch.arange(0.0, left_input.size()[3], device=device).repeat(left_input.size()[2]) #([8192])
+        left_y_coordinate = left_y_coordinate.view(left_input.size()[2], left_input.size()[3]) #([64, 128])
+        left_y_coordinate = torch.clamp(left_y_coordinate, min=0, max=left_input.size()[3] - 1) #([64, 128])
+        left_y_coordinate = left_y_coordinate.expand(left_input.size()[0], -1, -1)           #([1, 64, 128])
 
-        right_feature_map = right_input.expand(disparity_samples.size()[1], -1, -1, -1, -1).permute([1, 2, 0, 3, 4])
-        left_feature_map = left_input.expand(disparity_samples.size()[1], -1, -1, -1, -1).permute([1, 2, 0, 3, 4])
+        right_feature_map = right_input.expand(disparity_samples.size()[1], -1, -1, -1, -1).permute([1, 2, 0, 3, 4]) #([1, 12, 16, 64, 128])
+        left_feature_map = left_input.expand(disparity_samples.size()[1], -1, -1, -1, -1).permute([1, 2, 0, 3, 4])  #([1, 12, 16, 64, 128])
 
-        disparity_samples = disparity_samples.float()
+        disparity_samples = disparity_samples.float() #([1, 16, 64, 128])
 
         right_y_coordinate = left_y_coordinate.expand(
-            disparity_samples.size()[1], -1, -1, -1).permute([1, 0, 2, 3]) - disparity_samples
+            disparity_samples.size()[1], -1, -1, -1).permute([1, 0, 2, 3]) - disparity_samples  #([1, 16, 64, 128]) ??????????
 
-        right_y_coordinate_1 = right_y_coordinate
-        right_y_coordinate = torch.clamp(right_y_coordinate, min=0, max=right_input.size()[3] - 1)
+        right_y_coordinate_1 = right_y_coordinate  #([1, 16, 64, 128])
+        right_y_coordinate = torch.clamp(right_y_coordinate, min=0, max=right_input.size()[3] - 1)  #([1, 16, 64, 128])
 
         warped_right_feature_map = torch.gather(right_feature_map, dim=4, index=right_y_coordinate.expand(
-            right_input.size()[1], -1, -1, -1, -1).permute([1, 0, 2, 3, 4]).long())
+            right_input.size()[1], -1, -1, -1, -1).permute([1, 0, 2, 3, 4]).long()) #([1, 12, 16, 64, 128])
 
-        right_y_coordinate_1 = right_y_coordinate_1.unsqueeze(1)
+        right_y_coordinate_1 = right_y_coordinate_1.unsqueeze(1)  #([1, 16, 64, 128])
         warped_right_feature_map = (1 - ((right_y_coordinate_1 < 0) +
                                          (right_y_coordinate_1 > right_input.size()[3] - 1)).float()) * \
-            (warped_right_feature_map) + torch.zeros_like(warped_right_feature_map)
+            (warped_right_feature_map) + torch.zeros_like(warped_right_feature_map)  #([1, 12, 16, 64, 128])
 
         return warped_right_feature_map, left_feature_map

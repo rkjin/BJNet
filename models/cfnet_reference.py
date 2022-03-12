@@ -542,11 +542,12 @@ class cfnet(nn.Module):
         pred2_s4_cur = pred2_s4.detach()#[1, 1, 32, 64])
         pred2_v_s4 = disparity_variance(pred2_possibility_s4, self.maxdisp // 8, pred2_s4_cur)  # get the variance[1, 1, 32, 64])
         pred2_v_s4 = pred2_v_s4.sqrt()#[1, 1, 32, 64])
-        mindisparity_s3 = pred2_s4_cur - (self.gamma_s3 + 1) * pred2_v_s4 - self.beta_s3
-        maxdisparity_s3 = pred2_s4_cur + (self.gamma_s3 + 1) * pred2_v_s4 + self.beta_s3
-        maxdisparity_s3 = F.upsample(maxdisparity_s3 * 2, [left.size()[2] // 4, left.size()[3] // 4], mode='bilinear', align_corners=True)
+        mindisparity_s3 = pred2_s4_cur - (self.gamma_s3 + 1) * pred2_v_s4 - self.beta_s3 #([1, 1, 32, 64])
+        maxdisparity_s3 = pred2_s4_cur + (self.gamma_s3 + 1) * pred2_v_s4 + self.beta_s3 #([1, 1, 32, 64])
+        maxdisparity_s3 = F.upsample(maxdisparity_s3 * 2, [left.size()[2] // 4, left.size()[3] // 4], mode='bilinear',
+                                    align_corners=True) #([1, 1, 64, 128]) ?????????????????
         mindisparity_s3 = F.upsample(mindisparity_s3 * 2, [left.size()[2] // 4, left.size()[3] // 4], mode='bilinear',
-                                    align_corners=True)
+                                    align_corners=True) #([1, 1, 64, 128]) ??????????????????
 
         mindisparity_s3_1, maxdisparity_s3_1 = self.generate_search_range(self.sample_count_s3 + 1, mindisparity_s3, maxdisparity_s3, scale = 2)#
         #[1, 1, 64, 128]) torch.Size([1, 1, 64, 128])
