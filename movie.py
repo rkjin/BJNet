@@ -122,7 +122,8 @@ def test():
 @make_nograd_func
 def test_sample(sample):
     model.eval()
-    disp_ests = model(sample['left'].cuda(), sample['right'].cuda())
+    disp_ests, pred1_s3_up, pred2_s4 = model(sample['left'].cuda(), sample['right'].cuda())
+#    disp_ests = model(sample['left'].cuda(), sample['right'].cuda())
     return disp_ests[-1]
 
 
