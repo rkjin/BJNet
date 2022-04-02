@@ -69,11 +69,11 @@ def test():
     batch_idx = 0
     while True:
         batch_idx += 1
-        framel = cv2.imread('/content/drive/MyDrive/my/000000_10l.png')
-        framer = cv2.imread('/content/drive/MyDrive/my/000000_10r.png')
-        left_img = cv2.resize(framel,dsize=(512,256), interpolation=cv2.INTER_AREA)
-        right_img = cv2.resize(framer,dsize=(512,256), interpolation=cv2.INTER_AREA)
-        print(left_img.shape, right_img.shape)
+        framel = cv2.imread('/content/drive/MyDrive/data/test_img/left/left.bmp',cv2.IMREAD_COLOR)
+        framer = cv2.imread('/content/drive/MyDrive/data/test_img/left/right.bmp',cv2.IMREAD_COLOR)
+        # left_img = cv2.resize(framel,dsize=(512,256), interpolation=cv2.INTER_AREA)
+        # right_img = cv2.resize(framer,dsize=(512,256), interpolation=cv2.INTER_AREA)
+        # print(left_img.shape, right_img.shape)
 
         processed = get_transform()
         left_img = processed(left_img).numpy()
