@@ -59,7 +59,7 @@ def test():
     while True:
         batch_idx += 1
         left_img = cv2.imread('/content/drive/MyDrive/data/test_img/left/left.jpg',cv2.IMREAD_COLOR)
-        right_img = cv2.imread('/content/drive/MyDrive/data/test_img/left/right.jpg',cv2.IMREAD_COLOR)
+        right_img = cv2.imread('/content/drive/MyDrive/data/test_img/right/right.jpg',cv2.IMREAD_COLOR)
 
         processed = get_transform()
         left_img = processed(left_img).numpy()
