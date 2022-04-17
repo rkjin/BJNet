@@ -51,17 +51,6 @@ model.load_state_dict(state_dict['model'])
 
 import cv2 
 
-# capl = cv2.VideoCapture('/content/BJNet/ioutputl.avi')
-# capr = cv2.VideoCapture('/content/BJNet/ioutputr.avi')
-# capl.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-# capl.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-# capr.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-# capr.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-# fps = capl.get(cv2.CAP_PROP_FPS)
-# fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-# out = cv2.VideoWriter('/content/CFNet/output.avi', fourcc, fps, (512, 256))
-
-
 def test():
     #os.makedirs('./predictions', exist_ok=True)
 #    for batch_idx, sample in enumerate(TestImgLoader):
@@ -69,11 +58,8 @@ def test():
     batch_idx = 0
     while True:
         batch_idx += 1
-        framel = cv2.imread('/content/drive/MyDrive/data/test_img/left/left.jpg',cv2.IMREAD_COLOR)
-        framer = cv2.imread('/content/drive/MyDrive/data/test_img/left/right.jpg',cv2.IMREAD_COLOR)
-        # left_img = cv2.resize(framel,dsize=(512,256), interpolation=cv2.INTER_AREA)
-        # right_img = cv2.resize(framer,dsize=(512,256), interpolation=cv2.INTER_AREA)
-        # print(left_img.shape, right_img.shape)
+        left_img = cv2.imread('/content/drive/MyDrive/data/test_img/left/left.jpg',cv2.IMREAD_COLOR)
+        right_img = cv2.imread('/content/drive/MyDrive/data/test_img/left/right.jpg',cv2.IMREAD_COLOR)
 
         processed = get_transform()
         left_img = processed(left_img).numpy()
@@ -106,24 +92,18 @@ def test():
             assert len(disp_est.shape) == 2
             disp_est = np.array(disp_est[9:, :-6], dtype=np.float32)
             #fn = os.path.join("predictions", fn.split('/')[-1])
-            fn = os.path.join("/content/BJNet/prediction/movie"+str(batch_idx)+".png")
+            fn = os.path.join("/content/BJNet/prediction/image"+str(batch_idx)+".png")
 #            print("saving to", fn, disp_est.shape)
             disp_est_uint = np.round(disp_est * 256).astype(np.uint16)
-#            print(type(disp_est_uint), disp_est_uint.shape, disp_est_uint.max())
-#           out.write(disp_est_uint.reshape(375,1242,-1))
             skimage.io.imsave(fn, disp_est_uint)
         if batch_idx == 1:
           break
-    out.release()
-    capl.release()
-    capr.release()
 
 # test one sample
 @make_nograd_func
 def test_sample(sample):
     model.eval()
     disp_ests, pred1_s3_up, pred2_s4 = model(sample['left'].cuda(), sample['right'].cuda())
-#    disp_ests = model(sample['left'].cuda(), sample['right'].cuda())
     return disp_ests[-1]
 
 
