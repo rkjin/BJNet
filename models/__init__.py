@@ -1,5 +1,5 @@
 from models.cfnet_4th import CFNet_modified
-from models.cfnet_reference import CFNet 
+from models.cfnet import CFNet 
 from models.loss import model_loss
 
 __models__ = {
