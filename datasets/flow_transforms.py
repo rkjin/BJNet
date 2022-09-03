@@ -12,10 +12,10 @@ class Compose(object):
     """
 
     def __init__(self, co_transforms):
-        self.co_transforms = co_transforms
+        self.co_transforms = co_transforms #bj : list
 
     def __call__(self, input, target):
-        for t in self.co_transforms:
+        for t in self.co_transforms: #bj : class RandomCrop
             input,target = t(input,target)
         return input,target
 
@@ -46,18 +46,18 @@ class Scale(object):
         return inputs, target
 
 
-class RandomCrop(object):
+class RandomCrop(object): #bj : object 있어도, 없어도 상관없음.
     """ Randomly crop images
     """
 
     def __init__(self, size):
-        if isinstance(size, numbers.Number):
+        if isinstance(size, numbers.Number): # bj : False
             self.size = (int(size), int(size))
         else:
-            self.size = size
+            self.size = size # (256, 512)
 
     def __call__(self, inputs,target):
-        h, w, _ = inputs[0].shape
+        h, w, _ = inputs[0].shape # 375, 1242
         th, tw = self.size
         if w < tw: tw=w
         if h < th: th=h

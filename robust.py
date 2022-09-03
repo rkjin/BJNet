@@ -1,4 +1,5 @@
-from __future__ import print_function, division
+# bj : original robust.py
+from __future__ import print_function, division # bj : python2를 사용할 경우 
 import argparse
 import os
 import torch
@@ -23,6 +24,7 @@ from datasets import MiddleburyLoader as mid
 import gc
 
 cudnn.benchmark = True
+cudnn.enabled = False #bj : cudnn은 기본적으로 seed 고정안함. 위문장하고 상충됨.
 
 parser = argparse.ArgumentParser(description='Cascade and Fused Cost Volume for Robust Stereo Matching(CFNet)')
 parser.add_argument('--model', default='cfnet', help='select a model structure', choices=__models__.keys())
@@ -58,7 +60,7 @@ print("creating new summary file")
 logger = SummaryWriter(args.logdir)
 
 # dataset, dataloader
-StereoDataset = __datasets__[args.dataset]
+StereoDataset = __datasets__[args.dataset] #bj : KITTIDataset, class 이를만 변경
 kittiloadertrain = StereoDataset(args.datapath, args.trainlist, True)
 kittiloadertest = StereoDataset(args.datapath, args.testlist, False)
 #eth3d

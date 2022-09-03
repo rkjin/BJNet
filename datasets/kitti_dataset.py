@@ -10,7 +10,7 @@ import cv2
 import copy
 
 class KITTIDataset(Dataset):
-    def __init__(self, datapath, list_filename, training):
+    def __init__(self, datapath, list_filename, training): #bj : training is True
         self.datapath = datapath
         self.left_filenames, self.right_filenames, self.disp_filenames = self.load_path(list_filename)
         self.training = training
@@ -72,7 +72,7 @@ class KITTIDataset(Dataset):
             right_img = torchvision.transforms.functional.adjust_brightness(right_img, random_brightness[1])
             right_img = torchvision.transforms.functional.adjust_gamma(right_img, random_gamma[1])
             right_img = torchvision.transforms.functional.adjust_contrast(right_img, random_contrast[1])
-            right_img = np.asarray(right_img)
+            right_img = np.asarray(right_img) #bj : FIP.Image.Image to numpy.ndarray
             left_img = np.asarray(left_img)
 
             # w, h  = left_img.size
@@ -90,7 +90,7 @@ class KITTIDataset(Dataset):
             # geometric unsymmetric-augmentation
             angle = 0;
             px = 0
-            if np.random.binomial(1, 0.5):
+            if np.random.binomial(1, 0.5): #bj : 0 or 1 나올 확율이 0.5인 랜덤 수 발생 (0 또는 1)
                 # angle = 0.1;
                 # px = 2
                 angle = 0.05
@@ -99,12 +99,12 @@ class KITTIDataset(Dataset):
                 # flow_transforms.RandomVdisp(angle, px),
                 # flow_transforms.Scale(np.random.uniform(self.rand_scale[0], self.rand_scale[1]), order=self.order),
                 flow_transforms.RandomCrop((th, tw)),
-            ])
+            ]) #bj : co_transform, flow_transforms.RandomCrop 둘 다 class
             augmented, disparity = co_transform([left_img, right_img], disparity)
             left_img = augmented[0]
             right_img = augmented[1]
 
-            right_img.flags.writeable = True
+            right_img.flags.writeable = True # ###########################################################
             if np.random.binomial(1,0.2):
               sx = int(np.random.uniform(35,100))
               sy = int(np.random.uniform(25,75))
