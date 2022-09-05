@@ -48,7 +48,7 @@ class KITTIDataset(Dataset):
         return len(self.left_filenames)
 
     def __getitem__(self, index):
-        left_img = self.load_image(os.path.join(self.datapath, self.left_filenames[index]))
+        left_img = self.load_image(os.path.join(self.datapath, self.left_filenames[index])) # PIL image, no shape
         right_img = self.load_image(os.path.join(self.datapath, self.right_filenames[index]))
         # left_img = self.RGB2GRAY(left_img)
         # right_img = self.RGB2GRAY(right_img)
@@ -73,7 +73,7 @@ class KITTIDataset(Dataset):
             right_img = torchvision.transforms.functional.adjust_gamma(right_img, random_gamma[1])
             right_img = torchvision.transforms.functional.adjust_contrast(right_img, random_contrast[1])
             right_img = np.asarray(right_img) #bj : FIP.Image.Image to numpy.ndarray
-            left_img = np.asarray(left_img)
+            left_img = np.asarray(left_img) #bj : FIP.Image.Image to numpy.ndarray (375, 1242, 3)
 
             # w, h  = left_img.size
             # th, tw = 256, 512
@@ -100,8 +100,9 @@ class KITTIDataset(Dataset):
                 # flow_transforms.Scale(np.random.uniform(self.rand_scale[0], self.rand_scale[1]), order=self.order),
                 flow_transforms.RandomCrop((th, tw)),
             ]) #bj : co_transform, flow_transforms.RandomCrop 둘 다 class
+                                                #left_img (375, 1242, 3)
             augmented, disparity = co_transform([left_img, right_img], disparity)
-            left_img = augmented[0]
+            left_img = augmented[0] # (256, 512, 3)
             right_img = augmented[1]
 
             right_img.flags.writeable = True # ###########################################################
@@ -115,7 +116,7 @@ class KITTIDataset(Dataset):
             # to tensor, normalize
             disparity = np.ascontiguousarray(disparity, dtype=np.float32)
             processed = get_transform()
-            left_img = processed(left_img)
+            left_img = processed(left_img) # torch size(3, 256, 512)
             right_img = processed(right_img)
 
             return {"left": left_img,

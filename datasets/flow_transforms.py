@@ -57,15 +57,16 @@ class RandomCrop(object): #bj : object 있어도, 없어도 상관없음.
             self.size = size # (256, 512)
 
     def __call__(self, inputs,target):
-        h, w, _ = inputs[0].shape # 375, 1242
+        h, w, _ = inputs[0].shape # 375, 1242, 3
         th, tw = self.size
         if w < tw: tw=w
         if h < th: th=h
 
         x1 = random.randint(0, w - tw)
         y1 = random.randint(0, h - th)
-        inputs[0] = inputs[0][y1: y1 + th,x1: x1 + tw]
+        inputs[0] = inputs[0][y1: y1 + th,x1: x1 + tw] # 256, 512, 3
         inputs[1] = inputs[1][y1: y1 + th,x1: x1 + tw]
+
         return inputs, target[y1: y1 + th,x1: x1 + tw]
 
 
