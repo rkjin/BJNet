@@ -9,7 +9,7 @@ import math
 
 
 class feature_extraction(nn.Module):
-    def __init__(self, concat_feature=False, concat_feature_channel=12):
+    def __init__(self, concat_feature=False, concat_feature_channel=12): #True, 12
         super(feature_extraction, self).__init__()
         self.concat_feature = concat_feature
 
@@ -286,7 +286,7 @@ class cfnet(nn.Module):
         self.spatial_transformer = SpatialTransformer()
 
         #print(concat_volume, concat_channels)
-        if self.use_concat_volume:
+        if self.use_concat_volume: #True
             self.concat_channels = 12
             self.feature_extraction = feature_extraction(concat_feature=True,
                                                          concat_feature_channel=self.concat_channels)
