@@ -24,7 +24,7 @@ from datasets import MiddleburyLoader as mid
 import gc
 
 cudnn.benchmark = True
-cudnn.enabled = False #bj : cudnn은 기본적으로 seed 고정안함. 위문장하고 상충됨.
+# cudnn.enabled = False #bj : cudnn은 기본적으로 seed 고정안함. 위문장하고 상충됨. 이거 들어가면 메모리 에러 발생
 
 parser = argparse.ArgumentParser(description='Cascade and Fused Cost Volume for Robust Stereo Matching(CFNet)')
 parser.add_argument('--model', default='cfnet', help='select a model structure', choices=__models__.keys())
