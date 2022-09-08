@@ -25,7 +25,7 @@ class pyramidPooling(nn.Module):
                     conv2DBatchNormRelu(in_channels, int(in_channels / len(pool_sizes)), 1, 1, 0, bias=bias,
                                         with_bn=with_bn))
 
-        self.path_module_list =  (self.paths)
+        self.path_module_list = nn.ModuleList(self.paths)
         self.pool_sizes = pool_sizes
         self.model_name = model_name
         self.fusion_mode = fusion_mode
@@ -67,8 +67,8 @@ class pyramidPooling(nn.Module):
                 out = module(out)
                 out = F.upsample(out, size=(h, w), mode='bilinear')
                 pp_sum = pp_sum + 0.25 * out
-            # pp_sum = F.relu(pp_sum / 2., inplace=True)
-            pp_sum = FMish(pp_sum / 2.)
+            pp_sum = F.relu(pp_sum / 2., inplace=True)
+            # pp_sum = FMish(pp_sum / 2.)
 
             return pp_sum
 
@@ -87,10 +87,10 @@ class conv2DBatchNormRelu(nn.Module):
         if with_bn:
             self.cbr_unit = nn.Sequential(conv_mod,
                                           nn.BatchNorm2d(int(n_filters)),
-                                          Mish())
+                                          nn.ReLU(inplace=True))
         else:
             self.cbr_unit = nn.Sequential(conv_mod,
-                                          Mish())
+                                          nn.ReLU(inplace=True))
 
     def forward(self, inputs):
         outputs = self.cbr_unit(inputs)
@@ -256,7 +256,7 @@ class BasicBlock(nn.Module):
         super(BasicBlock, self).__init__()
 
         self.conv1 = nn.Sequential(convbn(inplanes, planes, 3, stride, pad, dilation),
-                                   Mish())
+                                   nn.ReLU(inplace=True))
 
         self.conv2 = convbn(planes, planes, 3, 1, pad, dilation)
 
@@ -323,11 +323,19 @@ class SpatialTransformer(nn.Module):
 
         device = left_input.get_device()
         left_y_coordinate = torch.arange(0.0, left_input.size()[3], device=device).repeat(left_input.size()[2])
-        left_y_coordinate = left_y_coordinate.view(left_input.size()[2], left_input.size()[3])
-        left_y_coordinate = torch.clamp(left_y_coordinate, min=0, max=left_input.size()[3] - 1)
-        left_y_coordinate = left_y_coordinate.expand(left_input.size()[0], -1, -1)
-
+        # torch.Size([8192]) tensor([  0.,   1.,   2.,  ..., 125., 126., 127.],
+        left_y_coordinate = left_y_coordinate.view(left_input.size()[2], left_input.size()[3]) #torch.Size([64, 128])
+        left_y_coordinate = torch.clamp(left_y_coordinate, min=0, max=left_input.size()[3] - 1)#torch.Size([64, 128])
+        left_y_coordinate = left_y_coordinate.expand(left_input.size()[0], -1, -1)#torch.Size([1, 64, 128])
+        #right-input [1, 12, 64, 128])
+        #            [1, 160, 64, 128])
+        #            [1, 6, 128, 256])
+        #            [1, 80, 128, 256])
         right_feature_map = right_input.expand(disparity_samples.size()[1], -1, -1, -1, -1).permute([1, 2, 0, 3, 4])
+        #right_input([1, 12, 64, 128]) right_feature_map ([1, 12, 16, 64, 128])
+        #          ([1, 160, 64, 128])                   ([1, 160, 16, 64, 128])
+        #           ([1, 6, 128, 256])                   ([1, 6, 12, 128, 256])
+        #           [1, 80, 128, 256])                   ([1, 80, 12, 128, 256]) 
         left_feature_map = left_input.expand(disparity_samples.size()[1], -1, -1, -1, -1).permute([1, 2, 0, 3, 4])
 
         disparity_samples = disparity_samples.float()
@@ -345,6 +353,37 @@ class SpatialTransformer(nn.Module):
         warped_right_feature_map = (1 - ((right_y_coordinate_1 < 0) +
                                          (right_y_coordinate_1 > right_input.size()[3] - 1)).float()) * \
             (warped_right_feature_map) + torch.zeros_like(warped_right_feature_map)
-
+        # right_feature_map torch.Size([1, 12, 64, 128])
+        # right_feature_map torch.Size([1, 12, 64, 128]) torch.Size([1, 12, 16, 64, 128])
+        # right_y_coordinate torch.Size([1, 16, 64, 128])
+        # right_y_coordinate 1 torch.Size([1, 16, 64, 128])
+        # right_y_coordinate torch.Size([1, 16, 64, 128])
+        # warped_right_feature_map torch.Size([1, 12, 16, 64, 128])
+        # right_y_coordinate_1 torch.Size([1, 1, 16, 64, 128])
+        # warped_right_feature_map torch.Size([1, 12, 16, 64, 128])
+        # right_feature_map torch.Size([1, 160, 64, 128])
+        # right_feature_map torch.Size([1, 160, 64, 128]) torch.Size([1, 160, 16, 64, 128])
+        # right_y_coordinate torch.Size([1, 16, 64, 128])
+        # right_y_coordinate 1 torch.Size([1, 16, 64, 128])
+        # right_y_coordinate torch.Size([1, 16, 64, 128])
+        # warped_right_feature_map torch.Size([1, 160, 16, 64, 128])
+        # right_y_coordinate_1 torch.Size([1, 1, 16, 64, 128])
+        # warped_right_feature_map torch.Size([1, 160, 16, 64, 128])
+        # right_feature_map torch.Size([1, 6, 128, 256])
+        # right_feature_map torch.Size([1, 6, 128, 256]) torch.Size([1, 6, 12, 128, 256])
+        # right_y_coordinate torch.Size([1, 12, 128, 256])
+        # right_y_coordinate 1 torch.Size([1, 12, 128, 256])
+        # right_y_coordinate torch.Size([1, 12, 128, 256])
+        # warped_right_feature_map torch.Size([1, 6, 12, 128, 256])
+        # right_y_coordinate_1 torch.Size([1, 1, 12, 128, 256])
+        # warped_right_feature_map torch.Size([1, 6, 12, 128, 256])
+        # right_feature_map torch.Size([1, 80, 128, 256])
+        # right_feature_map torch.Size([1, 80, 128, 256]) torch.Size([1, 80, 12, 128, 256])
+        # right_y_coordinate torch.Size([1, 12, 128, 256])
+        # right_y_coordinate 1 torch.Size([1, 12, 128, 256])
+        # right_y_coordinate torch.Size([1, 12, 128, 256])
+        # warped_right_feature_map torch.Size([1, 80, 12, 128, 256])
+        # right_y_coordinate_1 torch.Size([1, 1, 12, 128, 256])
+        # warped_right_feature_map torch.Size([1, 80, 12, 128, 256])
         return warped_right_feature_map, left_feature_map
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -x
 DATAPATH="/content/drive/MyDrive/data/kitti12_15/"
-CUDA_VISIBLE_DEVICES=0 python main0907.py --dataset kitti \
+CUDA_VISIBLE_DEVICES=0 python main.py --dataset kitti \
     --datapath $DATAPATH --trainlist ./filenames/kitticombine.txt --testlist ./filenames/kitticombine_val.txt \
     --epochs 400 --lr 0.001 --lrepochs "12,16,18,20:2" --batch_size 1 --maxdisp 256 \
     --model cfnet --logdir /content/drive/MyDrive/logdir \
