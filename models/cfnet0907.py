@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.utils.data
 from torch.autograd import Variable
 import torch.nn.functional as F
-from models.submodule import *
+from models.submodule0907 import *
 import math
 
 
@@ -114,11 +114,11 @@ class feature_extraction(nn.Module):
 
 
 
-
+                    
                    # (BasicBlock, 64,      1,      1,    1,      1)
     def _make_layer(self, block, planes, blocks, stride, pad, dilation):
         downsample = None
-        if stride != 1 or self.inplanes != planes * block.expansion:
+        if stride != 1 or self.inplanes != planes * block.expansion: #self.inplanes = 32, block.expansion = 1
             downsample = nn.Sequential(
                 nn.Conv2d(self.inplanes, planes * block.expansion,
                           kernel_size=1, stride=stride, bias=False),
@@ -127,7 +127,7 @@ class feature_extraction(nn.Module):
         layers = [] # BssicBlock  32        64~512   1~2  None or Seq   1      1
         layers.append(block(self.inplanes, planes, stride, downsample, pad, dilation))
         self.inplanes = planes * block.expansion
-        for i in range(1, blocks):
+        for i in range(1, blocks): # blocks = 1 수행안됨.
             layers.append(block(self.inplanes, planes, 1, None, pad, dilation))
 
         return nn.Sequential(*layers)
