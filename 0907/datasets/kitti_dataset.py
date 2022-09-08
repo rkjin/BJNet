@@ -105,13 +105,13 @@ class KITTIDataset(Dataset):
             left_img = augmented[0] # (256, 512, 3)
             right_img = augmented[1]
 
-            right_img.flags.writeable = True # ###########################################################
-            if np.random.binomial(1,0.2):
-              sx = int(np.random.uniform(35,100))
-              sy = int(np.random.uniform(25,75))
-              cx = int(np.random.uniform(sx,right_img.shape[0]-sx))
-              cy = int(np.random.uniform(sy,right_img.shape[1]-sy))
-              right_img[cx-sx:cx+sx,cy-sy:cy+sy] = np.mean(np.mean(right_img,0),0)[np.newaxis,np.newaxis]
+            # right_img.flags.writeable = True # ###########################################################
+            # if np.random.binomial(1,0.2):
+            #   sx = int(np.random.uniform(35,100))
+            #   sy = int(np.random.uniform(25,75))
+            #   cx = int(np.random.uniform(sx,right_img.shape[0]-sx))
+            #   cy = int(np.random.uniform(sy,right_img.shape[1]-sy))
+            #   right_img[cx-sx:cx+sx,cy-sy:cy+sy] = np.mean(np.mean(right_img,0),0)[np.newaxis,np.newaxis]
 
             # to tensor, normalize
             disparity = np.ascontiguousarray(disparity, dtype=np.float32)
