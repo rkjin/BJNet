@@ -25,7 +25,7 @@ class pyramidPooling(nn.Module):
                     conv2DBatchNormRelu(in_channels, int(in_channels / len(pool_sizes)), 1, 1, 0, bias=bias,
                                         with_bn=with_bn))
 
-        self.path_module_list = nn.ModuleList(self.paths)
+        self.path_module_list =  (self.paths)
         self.pool_sizes = pool_sizes
         self.model_name = model_name
         self.fusion_mode = fusion_mode
