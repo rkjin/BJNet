@@ -175,7 +175,7 @@ class feature_extraction(nn.Module):
                     "concat_feature5": concat_feature5, "concat_feature6": concat_feature6}
 
 class hourglassup(nn.Module):
-    def __init__(self, in_channels):
+    def __init__(self, in_channels): # in_channels : 32
         super(hourglassup, self).__init__()
 
         self.conv1 = nn.Conv3d(in_channels, in_channels * 2, kernel_size=3, stride=2,
@@ -539,26 +539,27 @@ class cfnet(nn.Module):
         cost2_s4 = torch.squeeze(cost2_s4, 1)#[1, 32, 32, 64])
         pred2_possibility_s4 = F.softmax(cost2_s4, dim=1)#[1, 32, 32, 64])
         pred2_s4 = disparity_regression(pred2_possibility_s4, self.maxdisp // 8).unsqueeze(1)#[1, 1, 32, 64])
-        pred2_s4_cur = pred2_s4.detach()#[1, 1, 32, 64])
-        pred2_v_s4 = disparity_variance(pred2_possibility_s4, self.maxdisp // 8, pred2_s4_cur)  # get the variance[1, 1, 32, 64])
-        pred2_v_s4 = pred2_v_s4.sqrt()#[1, 1, 32, 64])
-        mindisparity_s3 = pred2_s4_cur - (self.gamma_s3 + 1) * pred2_v_s4 - self.beta_s3 #([1, 1, 32, 64])
-        maxdisparity_s3 = pred2_s4_cur + (self.gamma_s3 + 1) * pred2_v_s4 + self.beta_s3 #([1, 1, 32, 64])
+        
+        pred2_s4_cur = pred2_s4.detach()#[1, 1, 32, 64]) False
+        pred2_v_s4 = disparity_variance(pred2_possibility_s4, self.maxdisp // 8, pred2_s4_cur)  # get the variance[1, 1, 32, 64]) True
+        pred2_v_s4 = pred2_v_s4.sqrt()#[1, 1, 32, 64]) True
+        mindisparity_s3 = pred2_s4_cur - (self.gamma_s3 + 1) * pred2_v_s4 - self.beta_s3 #([1, 1, 32, 64]) True
+        maxdisparity_s3 = pred2_s4_cur + (self.gamma_s3 + 1) * pred2_v_s4 + self.beta_s3 #([1, 1, 32, 64]) True
         maxdisparity_s3 = F.upsample(maxdisparity_s3 * 2, [left.size()[2] // 4, left.size()[3] // 4], mode='bilinear',
-                                    align_corners=True) #([1, 1, 64, 128]) ?????????????????
+                                    align_corners=True) #([1, 1, 64, 128]) ?????????????????  True
         mindisparity_s3 = F.upsample(mindisparity_s3 * 2, [left.size()[2] // 4, left.size()[3] // 4], mode='bilinear',
-                                    align_corners=True) #([1, 1, 64, 128]) ??????????????????
-
-        mindisparity_s3_1, maxdisparity_s3_1 = self.generate_search_range(self.sample_count_s3 + 1, mindisparity_s3, maxdisparity_s3, scale = 2)#
+                                    align_corners=True) #([1, 1, 64, 128]) ??????????????????  True
+                                                                                          # 14 + 1   
+        mindisparity_s3_1, maxdisparity_s3_1 = self.generate_search_range(self.sample_count_s3 + 1, mindisparity_s3, maxdisparity_s3, scale = 2)# True
         #[1, 1, 64, 128]) torch.Size([1, 1, 64, 128])
-        disparity_samples_s3 = self.generate_disparity_samples(mindisparity_s3_1, maxdisparity_s3_1, self.sample_count_s3).float()#[1, 16, 64, 128])
+        disparity_samples_s3 = self.generate_disparity_samples(mindisparity_s3_1, maxdisparity_s3_1, self.sample_count_s3).float()#[1, 16, 64, 128])False
         confidence_v_concat_s3, _ = self.cost_volume_generator(features_left["concat_feature3"],
-                                                            features_right["concat_feature3"], disparity_samples_s3, 'concat')#[1, 24, 16, 64, 128])
+                                                            features_right["concat_feature3"], disparity_samples_s3, 'concat')#[1, 24, 16, 64, 128]) True
         confidence_v_gwc_s3, disparity_samples_s3 = self.cost_volume_generator(features_left["gw3"], features_right["gw3"],
-                                                                         disparity_samples_s3, 'gwc', self.num_groups)#[1, 40, 16, 64, 128]) torch.Size([1, 1, 16, 64, 128])
-        confidence_v_s3 = torch.cat((confidence_v_gwc_s3, confidence_v_concat_s3, disparity_samples_s3), dim=1)#[1, 65, 16, 64, 128])
+                                                                         disparity_samples_s3, 'gwc', self.num_groups)#[1, 40, 16, 64, 128]) torch.Size([1, 1, 16, 64, 128]) True
+        confidence_v_s3 = torch.cat((confidence_v_gwc_s3, confidence_v_concat_s3, disparity_samples_s3), dim=1)#[1, 65, 16, 64, 128]) True
 
-        disparity_samples_s3 = torch.squeeze(disparity_samples_s3, dim=1)#[1, 16, 64, 128])
+        disparity_samples_s3 = torch.squeeze(disparity_samples_s3, dim=1)#[1, 16, 64, 128]) False
 
         cost0_s3 = self.confidence0_s3(confidence_v_s3)#[1, 32, 16, 64, 128])
         cost0_s3 = self.confidence1_s3(cost0_s3) + cost0_s3#[1, 32, 16, 64, 128])
@@ -569,6 +570,7 @@ class cfnet(nn.Module):
         cost1_s3 = self.confidence_classif1_s3(out2_s3).squeeze(1)#[1, 16, 64, 128])
         cost1_s3_possibility = F.softmax(cost1_s3, dim=1)#[1, 16, 64, 128])
         pred1_s3 = torch.sum(cost1_s3_possibility * disparity_samples_s3, dim=1, keepdim=True)#[1, 1, 64, 128])
+        
         pred1_s3_cur = pred1_s3.detach()#[1, 1, 64, 128])
         pred1_v_s3 = disparity_variance_confidence(cost1_s3_possibility, disparity_samples_s3, pred1_s3_cur)#[1, 1, 64, 128])
         pred1_v_s3 = pred1_v_s3.sqrt()#[1, 1, 64, 128])
@@ -632,10 +634,10 @@ class cfnet(nn.Module):
             predmid_s3 = torch.sum(costmid_s3 * disparity_samples_s3, dim=1, keepdim=True)#[1, 1, 64, 128])
             predmid_s3 = F.upsample(predmid_s3 * 4, [left.size()[2], left.size()[3]], mode='bilinear',
                                      align_corners=True)#[1, 1, 256, 512])
-            predmid_s3 = torch.squeeze(predmid_s3, 1)#[1, 256, 512])
+            predmid_s3 = torch.squeeze(predmid_s3, 1)#[1, 256, 512]) 
 
             pred1_s3_up = F.upsample(pred1_s3 * 4, [left.size()[2], left.size()[3]], mode='bilinear', align_corners=True)#[1, 1, 256, 512])
-            pred1_s3_up = torch.squeeze(pred1_s3_up, 1)#[1, 256, 512])
+            pred1_s3_up = torch.squeeze(pred1_s3_up, 1)#[1, 256, 512]) #############
 
             cost0_s2 = self.confidence_classif0_s2(cost0_s2).squeeze(1)#[1, 12, 128, 256])
             cost0_s2 = F.softmax(cost0_s2, dim=1)#[1, 12, 128, 256])

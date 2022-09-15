@@ -321,30 +321,94 @@ class SpatialTransformer(nn.Module):
             :left_feature_map: expanded left image features.
         """
 
-        device = left_input.get_device()
-        left_y_coordinate = torch.arange(0.0, left_input.size()[3], device=device).repeat(left_input.size()[2])
-        left_y_coordinate = left_y_coordinate.view(left_input.size()[2], left_input.size()[3])
-        left_y_coordinate = torch.clamp(left_y_coordinate, min=0, max=left_input.size()[3] - 1)
-        left_y_coordinate = left_y_coordinate.expand(left_input.size()[0], -1, -1)
+        device = left_input.get_device() #
+        left_y_coordinate = torch.arange(0.0, left_input.size()[3], device=device).repeat(left_input.size()[2])#(8192)
+        left_y_coordinate = left_y_coordinate.view(left_input.size()[2], left_input.size()[3])# (64,128)
+        left_y_coordinate = torch.clamp(left_y_coordinate, min=0, max=left_input.size()[3] - 1)# (64,128)
+        left_y_coordinate = left_y_coordinate.expand(left_input.size()[0], -1, -1)#(1, 64,128)
 
-        right_feature_map = right_input.expand(disparity_samples.size()[1], -1, -1, -1, -1).permute([1, 2, 0, 3, 4])
-        left_feature_map = left_input.expand(disparity_samples.size()[1], -1, -1, -1, -1).permute([1, 2, 0, 3, 4])
+        right_feature_map = right_input.expand(disparity_samples.size()[1], -1, -1, -1, -1).permute([1, 2, 0, 3, 4])# (1, 12, 16, 64,128)
+        left_feature_map = left_input.expand(disparity_samples.size()[1], -1, -1, -1, -1).permute([1, 2, 0, 3, 4])#(1, 12, 16, 64,128)
 
-        disparity_samples = disparity_samples.float()
+        disparity_samples = disparity_samples.float()#(1, 16,64,128)
 
         right_y_coordinate = left_y_coordinate.expand(
-            disparity_samples.size()[1], -1, -1, -1).permute([1, 0, 2, 3]) - disparity_samples
-
-        right_y_coordinate_1 = right_y_coordinate
-        right_y_coordinate = torch.clamp(right_y_coordinate, min=0, max=right_input.size()[3] - 1)
+            disparity_samples.size()[1], -1, -1, -1).permute([1, 0, 2, 3]) - disparity_samples#(1, 16,64,128)  
+                                                                           #####################  
+        right_y_coordinate_1 = right_y_coordinate#(1, 16,64,128)
+        right_y_coordinate = torch.clamp(right_y_coordinate, min=0, max=right_input.size()[3] - 1)#(1, 16,64,128)
 
         warped_right_feature_map = torch.gather(right_feature_map, dim=4, index=right_y_coordinate.expand(
-            right_input.size()[1], -1, -1, -1, -1).permute([1, 0, 2, 3, 4]).long())
+            right_input.size()[1], -1, -1, -1, -1).permute([1, 0, 2, 3, 4]).long())#(1, 12, 16,64,128)
 
-        right_y_coordinate_1 = right_y_coordinate_1.unsqueeze(1)
+        right_y_coordinate_1 = right_y_coordinate_1.unsqueeze(1)#(1, 1, 16,64,128)
         warped_right_feature_map = (1 - ((right_y_coordinate_1 < 0) +
                                          (right_y_coordinate_1 > right_input.size()[3] - 1)).float()) * \
-            (warped_right_feature_map) + torch.zeros_like(warped_right_feature_map)
+            (warped_right_feature_map) + torch.zeros_like(warped_right_feature_map)#(1, 12, 16,64,128)
 
+
+            # print( left_y_coordinate.expand(disparity_samples.size()[1], -1, -1, -1).permute([1, 0, 2, 3])[0,:,1,1])
+            # tensor([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.],
+            #     device='cuda:0')
+            # print(disparity_samples[0,:,1,1]) 
+            # tensor([11., 13., 16., 18., 20., 23., 25., 27., 30., 32., 34., 36., 39., 41., 43., 47.], device='cuda:0')
+
+            # print( right_y_coordinate[0,:,1,1]) disparity를 고려하여 왼쪽(1,1) 점의 해당하는 오른쪽 사진의 1행 열좌표      
+            # tensor([-10., -12., -15., -17., -19., -22., -24., -26., -29., -31., -33., -35.,-38., -40., -42., -46.], device='cuda:0')  
+            # 왼쪽 사진의 보다 오른쪽 사진의 점이 왼쪽으로 치우쳐 있기는 한데, 마이너스 값은 될 수 없으므로 clamp 처리함.   
+            # right_y_coordinate = torch.clamp(right_y_coordinate, min=0, max=right_input.size()[3] - 1)       
+            # tensor([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.], device='cuda:0')
+
+            # start torch.Size([8192])
+            # torch.Size([64, 128])
+            # torch.Size([64, 128])
+            # torch.Size([1, 64, 128])
+            # torch.Size([1, 12, 16, 64, 128])
+            # torch.Size([1, 12, 16, 64, 128])
+            # torch.Size([1, 16, 64, 128])
+            # torch.Size([1, 16, 64, 128])
+            # torch.Size([1, 16, 64, 128])
+            # torch.Size([1, 16, 64, 128])
+            # torch.Size([1, 12, 16, 64, 128])
+            # torch.Size([1, 1, 16, 64, 128])
+            # end torch.Size([1, 12, 16, 64, 128])
+            # start torch.Size([8192])
+            # torch.Size([64, 128])
+            # torch.Size([64, 128])
+            # torch.Size([1, 64, 128])
+            # torch.Size([1, 160, 16, 64, 128])
+            # torch.Size([1, 160, 16, 64, 128])
+            # torch.Size([1, 16, 64, 128])
+            # torch.Size([1, 16, 64, 128])
+            # torch.Size([1, 16, 64, 128])
+            # torch.Size([1, 16, 64, 128])
+            # torch.Size([1, 160, 16, 64, 128])
+            # torch.Size([1, 1, 16, 64, 128])
+            # end torch.Size([1, 160, 16, 64, 128])
+            # start torch.Size([32768])
+            # torch.Size([128, 256])
+            # torch.Size([128, 256])
+            # torch.Size([1, 128, 256])
+            # torch.Size([1, 6, 12, 128, 256])
+            # torch.Size([1, 6, 12, 128, 256])
+            # torch.Size([1, 12, 128, 256])
+            # torch.Size([1, 12, 128, 256])
+            # torch.Size([1, 12, 128, 256])
+            # torch.Size([1, 12, 128, 256])
+            # torch.Size([1, 6, 12, 128, 256])
+            # torch.Size([1, 1, 12, 128, 256])
+            # end torch.Size([1, 6, 12, 128, 256])
+            # start torch.Size([32768])
+            # torch.Size([128, 256])
+            # torch.Size([128, 256])
+            # torch.Size([1, 128, 256])
+            # torch.Size([1, 80, 12, 128, 256])
+            # torch.Size([1, 80, 12, 128, 256])
+            # torch.Size([1, 12, 128, 256])
+            # torch.Size([1, 12, 128, 256])
+            # torch.Size([1, 12, 128, 256])
+            # torch.Size([1, 12, 128, 256])
+            # torch.Size([1, 80, 12, 128, 256])
+            # torch.Size([1, 1, 12, 128, 256])
+            # end torch.Size([1, 80, 12, 128, 256])
         return warped_right_feature_map, left_feature_map
-
