@@ -1,4 +1,4 @@
-# CFNet modified  
+# Studying and Modifying CFNet 
 ## Better Job net
 
 BJNet_1st
